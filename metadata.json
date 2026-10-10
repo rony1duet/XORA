@@ -1,0 +1,8 @@
+{
+  "name": "XORA: Earth–Moon–Mars Terrain Twin Explorer",
+  "description": "Scientific terrain twin explorer identifying Earth analogs for lunar and Martian landing sites with transparent multi-metric scoring, split-world scrubber, and handicap ledgers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
