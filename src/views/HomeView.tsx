@@ -18,7 +18,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
       {/* 3D Celestial Hero with Orbit Mechanics */}
       <CelestialHero3D
         onExplore={(body) => onNavigate('explore', body ? { body } : undefined)}
-        onMethodology={() => onNavigate('methodology')}
+        onCompare={() => onNavigate('compare')}
       />
 
       {/* Editorial Science & Mission Narrative */}

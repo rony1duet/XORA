@@ -64,7 +64,7 @@ A tailored walkthrough allowing judges to experience the full 7-step evaluation 
 - **Styling**: Tailwind CSS v4 following the Universal Frontend Design Constitution (60-30-10 palette, Zero-Pill typography, strict 3-zone Top Bar contract, tabular numerals).
 - **Icons**: Lucide React
 - **Validation**: Zod schema definitions
-- **State & Routing**: URL synchronized pushState router (`/`, `/explore`, `/compare`, `/sites/:id`, `/rankings`, `/methodology`, `/data-sources`, `/reports`, `/demo`).
+- **State & Routing**: URL synchronized hash router (`#/home`, `#/explore`, `#/compare`, `#/sites?id=...`, `#/rankings`).
 
 ---
 

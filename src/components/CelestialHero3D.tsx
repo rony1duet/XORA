@@ -9,17 +9,17 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
-import { Compass, BookOpen, RotateCcw, Play, Pause, ExternalLink } from 'lucide-react';
+import { Compass, GitCompare, RotateCcw, Play, Pause, ExternalLink } from 'lucide-react';
 import { CelestialBody } from '../types/analog';
 
 interface CelestialHero3DProps {
   onExplore: (body?: CelestialBody) => void;
-  onMethodology: () => void;
+  onCompare?: () => void;
 }
 
 export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
   onExplore,
-  onMethodology,
+  onCompare,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const [webGlAvailable, setWebGlAvailable] = useState<boolean>(true);
@@ -837,13 +837,15 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
               <span>Launch Terrain Explorer</span>
             </button>
 
-            <button
-              onClick={onMethodology}
-              className="px-6 py-3.5 text-sm font-semibold text-slate-200 bg-[#0E121C]/90 hover:bg-[#161B26] hover:text-white border border-[#1F2737] rounded-lg transition-colors flex items-center gap-2 cursor-pointer backdrop-blur-sm"
-            >
-              <BookOpen className="w-4 h-4 text-slate-400" />
-              <span>Scoring Methodology</span>
-            </button>
+            {onCompare && (
+              <button
+                onClick={onCompare}
+                className="px-6 py-3.5 text-sm font-semibold text-slate-200 bg-[#0E121C]/90 hover:bg-[#161B26] hover:text-white border border-[#1F2737] rounded-lg transition-colors flex items-center gap-2 cursor-pointer backdrop-blur-sm"
+              >
+                <GitCompare className="w-4 h-4 text-cyan-400" />
+                <span>Compare Worlds</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
