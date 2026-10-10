@@ -13,3 +13,5 @@ yarn-error.log*
 .idea/
 .vscode/
 videos/
+script.txt
+.env.example
