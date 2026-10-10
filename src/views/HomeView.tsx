@@ -123,7 +123,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
 
             {/* Pair 3: Tranquillitatis Pit (Moon) -> Lanzarote */}
             <div 
-              onClick={() => onNavigate('compare', { ref: 'lunar-tranquillitatis-pit', earth: 'lanzarote-lava-tubes' })}
+              onClick={() => onNavigate('compare', { ref: 'lunar-tranquillitatis-pit', earth: 'lanzarote-tubes' })}
               className="p-5 rounded-2xl bg-[#0B101D]/80 border border-slate-800/80 hover:border-emerald-500/50 hover:bg-[#0E1526] transition-all cursor-pointer group flex flex-col justify-between space-y-5 shadow-lg"
             >
               <div className="space-y-3">

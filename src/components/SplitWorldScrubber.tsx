@@ -43,37 +43,62 @@ export const SplitWorldScrubber: React.FC<SplitWorldScrubberProps> = ({ referenc
   const handlePointerMove = useCallback((clientX: number) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
+    if (rect.width <= 0) return;
     const pos = ((clientX - rect.left) / rect.width) * 100;
-    setScrubberPosition(Math.max(5, Math.min(95, pos)));
+    setScrubberPosition(Math.max(2, Math.min(98, pos)));
   }, []);
 
-  const onPointerDown = () => setIsDragging(true);
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement> | React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+    handlePointerMove(e.clientX);
+    if ('setPointerCapture' in e.currentTarget && 'pointerId' in e) {
+      try {
+        e.currentTarget.setPointerCapture((e as React.PointerEvent).pointerId);
+      } catch (_) {}
+    }
+  };
+
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isDragging) {
+      e.preventDefault();
+      handlePointerMove(e.clientX);
+    }
+  };
+
+  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    setIsDragging(false);
+    if ('releasePointerCapture' in e.currentTarget && 'pointerId' in e) {
+      try {
+        e.currentTarget.releasePointerCapture((e as React.PointerEvent).pointerId);
+      } catch (_) {}
+    }
+  };
 
   useEffect(() => {
-    const handleUp = () => setIsDragging(false);
-    const handleMove = (e: MouseEvent) => {
-      if (isDragging) handlePointerMove(e.clientX);
+    if (!isDragging) return;
+    const handleMove = (e: PointerEvent | MouseEvent) => {
+      handlePointerMove(e.clientX);
     };
-    const handleTouchMove = (e: TouchEvent) => {
-      if (isDragging && e.touches[0]) handlePointerMove(e.touches[0].clientX);
+    const handleUp = () => {
+      setIsDragging(false);
     };
 
-    if (isDragging) {
-      window.addEventListener('mouseup', handleUp);
-      window.addEventListener('mousemove', handleMove);
-      window.addEventListener('touchend', handleUp);
-      window.addEventListener('touchmove', handleTouchMove);
-    }
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', handleUp);
+    window.addEventListener('mousemove', handleMove);
+    window.addEventListener('mouseup', handleUp);
+
     return () => {
-      window.removeEventListener('mouseup', handleUp);
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
       window.removeEventListener('mousemove', handleMove);
-      window.removeEventListener('touchend', handleUp);
-      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('mouseup', handleUp);
     };
   }, [isDragging, handlePointerMove]);
 
   return (
-    <div className="bg-[#0F121C] border border-[#1F2737] rounded-xl overflow-hidden flex flex-col shadow-xl">
+    <div className="bg-[#0F121C] border border-[#1F2737] rounded-xl overflow-hidden flex flex-col shadow-xl select-none">
       {/* Top control bar */}
       <div className="p-4 border-b border-[#1F2737] bg-[#121624] flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
@@ -115,19 +140,22 @@ export const SplitWorldScrubber: React.FC<SplitWorldScrubberProps> = ({ referenc
       {viewType === 'imagery' ? (
         <div
           ref={containerRef}
-          onMouseDown={onPointerDown}
-          onTouchStart={onPointerDown}
-          className="relative w-full aspect-16/9 sm:aspect-21/9 bg-[#07080D] select-none cursor-ew-resize overflow-hidden"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          className="relative w-full aspect-16/9 sm:aspect-21/9 bg-[#07080D] select-none cursor-ew-resize overflow-hidden touch-none"
         >
           {/* Layer 1 (Right side): Earth Analog Image */}
-          <div className="absolute inset-0 w-full h-full">
+          <div className="absolute inset-0 w-full h-full pointer-events-none select-none">
             <img
               src={getTerrainImage(earth.id, earth.demImageUrl)}
               alt={`Earth Analog: ${earth.name}`}
-              className="w-full h-full object-cover"
+              draggable={false}
+              onDragStart={(e) => e.preventDefault()}
+              className="w-full h-full object-cover pointer-events-none select-none"
             />
             {/* Earth Label (Bottom Right) */}
-            <div className="absolute bottom-4 right-4 bg-[#090A0F]/85 backdrop-blur-md border border-emerald-500/40 rounded-lg px-3 py-1.5 text-right shadow-lg">
+            <div className="absolute bottom-4 right-4 bg-[#090A0F]/85 backdrop-blur-md border border-emerald-500/40 rounded-lg px-3 py-1.5 text-right shadow-lg pointer-events-none select-none">
               <div className="text-[10px] font-mono uppercase text-emerald-400 font-semibold tracking-wider">
                 Earth Twin Candidate
               </div>
@@ -140,19 +168,21 @@ export const SplitWorldScrubber: React.FC<SplitWorldScrubberProps> = ({ referenc
 
           {/* Layer 2 (Left side): Planetary Reference clipped precisely at scrubberPosition */}
           <div
-            className="absolute inset-0 h-full overflow-hidden"
+            className="absolute inset-0 h-full overflow-hidden pointer-events-none select-none"
             style={{ width: `${scrubberPosition}%` }}
           >
             <img
               src={getTerrainImage(reference.id, reference.demImageUrl)}
               alt={`Planetary Reference: ${reference.name}`}
-              className="absolute inset-y-0 left-0 h-full object-cover max-w-none"
+              draggable={false}
+              onDragStart={(e) => e.preventDefault()}
+              className="absolute inset-y-0 left-0 h-full object-cover max-w-none pointer-events-none select-none"
               style={{
                 width: containerWidth ? `${containerWidth}px` : '100%',
               }}
             />
             {/* Target Label (Bottom Left) */}
-            <div className="absolute bottom-4 left-4 bg-[#090A0F]/85 backdrop-blur-md border border-cyan-500/40 rounded-lg px-3 py-1.5 shadow-lg">
+            <div className="absolute bottom-4 left-4 bg-[#090A0F]/85 backdrop-blur-md border border-cyan-500/40 rounded-lg px-3 py-1.5 shadow-lg pointer-events-none select-none">
               <div className="text-[10px] font-mono uppercase text-cyan-400 font-semibold tracking-wider">
                 {reference.body === 'moon' ? 'Lunar Reference' : 'Martian Reference'}
               </div>

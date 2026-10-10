@@ -5,7 +5,7 @@ Video Specification: 1920x1080p Full HD · 60 FPS · MP4 (H.264)
 Duration: ~2 Minutes (120 - 125 seconds)
 ================================================================================
 
-[0:00 - 0:25] SCENE 1: 3D CELESTIAL PROVING GROUND & SIMULATION MECHANICS
+[0:00 - 0:18] SCENE 1: 3D CELESTIAL PROVING GROUND & SIMULATION CONTROLS
 --------------------------------------------------------------------------------
 Visual Actions:
 - Load http://127.0.0.1:3000 in crisp 1080p 60fps.
@@ -14,11 +14,11 @@ Visual Actions:
 - Moon and Mars in physical orbital inclination.
 - Active orbiting satellites (LEO Space Station, GEO Comms Satellite, Lunar LRO, 
   and Mars MRO) with solar arrays and pulsing LED beacons.
-- Click the "Pause" simulation control button in the top-right, pause for 1.5s, 
+- Click the "Pause" simulation control button in the top-right, pause for 1.4s, 
   then click "Resume" to prove interactive simulation control.
 - Click and drag on the 3D celestial canvas in full 360-degree rotation.
 - Smoothly scroll down to the "Signature Proving Ground Baselines" spotlight section.
-- Hover over the 3 signature pair cards (Shackleton ↔ Haughton, Jezero ↔ Atacama, 
+- Hover over signature pair cards (Shackleton ↔ Haughton, Jezero ↔ Atacama, 
   Tranquillitatis ↔ Lanzarote) showing slope and roughness comparison previews.
 
 Voiceover / Speech:
@@ -37,94 +37,112 @@ Artemis candidate Shackleton Rim with Haughton impact breccia, and Perseverance'
 Jezero delta with Chile's hyper-arid Atacama Desert."
 
 --------------------------------------------------------------------------------
-[0:25 - 0:52] SCENE 2: ATLAS EXPLORER, LEAFLET MAP & COMPLETE SITE DOSSIERS
+[0:18 - 0:48] SCENE 2: ATLAS EXPLORER, MAP VIEWS, REGION JUMPS & CANDIDATE SWITCHING
 --------------------------------------------------------------------------------
 Visual Actions:
 - Click "Explore Atlas" in the top navbar capsule.
-- Toggle between Moon and Mars target destinations.
-- Scroll through the candidate proving ground grid.
-- Click "View Site Profile" on Atacama Yungay Basin to launch the comprehensive 
-  Site Profile Dossier.
-- Scroll through the Evidence Passport: verified remote-sensing datasets 
-  (NASA LOLA altimetry, HiRISE 25cm DEM, Copernicus 30m), astronaut field test 
-  campaigns (NASA Desert RATS, ESA PANGAEA), and rehearsal operation cards.
-- Click "Back to Explorer".
+- Select target body "Mars" and set reference to "Jezero Crater (Delta & Floor)".
+- Demonstrate different interactive Leaflet basemap views:
+  1. Click "Satellite" to inspect high-resolution photographic terrain tiles.
+  2. Click "Topographic" to view OpenStreetMap contour infrastructure.
+  3. Click "Dark Matter" for high-contrast cartographic data visualization.
+- Demonstrate quick region jumps:
+  1. Click "Atacama" to fly the camera directly into the hyper-arid Chilean desert.
+  2. Click "Lanzarote" to jump to the Canary Island volcanic basalt fields.
+  3. Click "Haughton" to jump to the Canadian Arctic impact breccia.
+  4. Click "World" to smoothly reset back to the global planetary view.
+- Scroll down to "Ranked Terrestrial Candidates for Jezero Crater (Delta & Floor)":
+  - Click Candidate #1 (Atacama Desert, Yungay Station) — view live terrain match assessment.
+  - Click Candidate #2 (Death Valley National Park) — watch the right-side inspector and 
+    Similarity Fingerprint adapt instantaneously.
+  - Click Candidate #3 — observe candidate scoring variations.
 
 Voiceover / Speech:
-"In the Atlas Explorer, mission planners filter through 12 verified terrestrial 
-proving grounds spanning polar permafrost, volcanic lava tubes, and hyper-arid basins.
+"In the Atlas Explorer, mission planners inspect analog test sites across multiple 
+geospatial perspectives. Switch instantly between Dark Matter canvas, real photographic 
+satellite imagery, and topographic cartography.
 
-Opening a site dossier reveals complete mission evidence passports — integrating 
-peer-reviewed geological classifications, 10-meter spatial resolution benchmarks, 
-and operational rehearsal cards documenting NASA and ESA astronaut campaigns. 
-Every data point is tied directly to verified space agency coordinate baselines."
+Our quick region jumps fly directly to world-class proving grounds — from the Atacama 
+Basin to the basaltic lava tubes of Lanzarote and the Canadian Arctic's Haughton Crater.
+
+Under 'Ranked Terrestrial Candidates for Jezero Crater', selecting candidates updates 
+the multi-vector assessment in real time, calculating Wasserstein slope distances, 
+RMS roughness, and documented physical discrepancies."
 
 --------------------------------------------------------------------------------
-[0:52 - 1:24] SCENE 3: DUAL-WORLD COMPARATOR, 1:1 SCRUBBER & THE HANDICAP LEDGER
+[0:48 - 1:24] SCENE 3: DUAL-WORLD COMPARATOR, FIXED SLIDER, ELEVATION TRANSECT & GLYPH
 --------------------------------------------------------------------------------
 Visual Actions:
 - Click "Compare" in the top navbar capsule.
-- Select the signature preset "Jezero Delta ↔ Atacama".
-- Grab the 1:1 Split-World Scrubber handle and slide it smoothly left and right 
-  across synchronized elevation hillshade imagery.
-- Click the "Elevation Profile" toggle to display real LiDAR cross-section 
-  topography curves, then switch back to "Imagery".
-- Switch to the "Shackleton Rim ↔ Haughton" polar crater preset.
-- Scroll down to examine the Topographic Fingerprint radial glyph and the 
-  6 metric correlation progress meters (Elevation Relief, Slope CDF, 10m RMS Roughness, 
-  Hazard Density, Rock Substrate, Environmental Aridity).
-- Scroll into "The Handicap Ledger", click and expand the physical divergence 
-  accordion items (Surface Gravity Offset, Vacuum Divergence, Diurnal Thermal Swings).
+- Configure mission parameters using the top control selectors:
+  - 1. Planetary Target (NASA LOLA / MOLA): Select "Jezero Crater (Delta & Floor) (Mars)".
+  - 2. Earth Analog Twin (Copernicus / USGS): Select "Lanzarote Volcanic Caves (Corona System) (Spain)".
+  - 3. Rehearsal Objective (Weight Preset): Select "Lava-Tube / Skylight Descent", then switch to 
+    "Rover Traverse & Traction", showing real-time recalculated Twin Fidelity Index.
+- Demonstrate the Split-World Comparison Scrubber (now fully fixed against native image drag):
+  - Click and drag smoothly to the left (22% split), revealing crisp planetary reference imagery.
+  - Slide smoothly across to the right (78% split), exposing calibrated Earth analog terrain.
+  - Return smoothly to the center (50% split).
+- Switch between visualization modes:
+  - Click "Elevation Transect" to reveal standardized 25-kilometer topographic cross-section 
+    LiDAR curves comparing relief differences.
+  - Click "Topographic Imagery" to return to 1:1 surface inspection.
+- Scroll down to highlight the Radial Glyph (Topographic Fingerprint) and the Metric Correlation 
+  data table breakdown across Elevation Relief, Slope CDF, 10m RMS Roughness, Hazard Density, 
+  Rock Substrate, and Environmental Aridity.
+- Expand "The Handicap Ledger" to audit physical gravity and vacuum discrepancies.
 
 Voiceover / Speech:
-"Our Dual-World Comparator provides an interactive 1:1 split-world scrubber. 
-Engineers can slide across synchronized elevation datasets to visually verify 
-crater rims, scarps, and boulder fields under identical lighting, or toggle 
-directly into elevation profile curves.
+"Our Dual-World Comparator provides a 1:1 scale topographic match. Here, we benchmark 
+Jezero Crater against Lanzarote Volcanic Caves under customizable rehearsal objectives.
 
-Below, the Topographic Fingerprint quantifies fidelity across six independent vectors, 
-including Wasserstein slope distances and 10-meter RMS roughness for rover wheel hazards. 
+The Split-World Comparison slider glides smoothly across synchronized 10-meter DEM textures, 
+allowing engineers to visually verify slope scarps and rock hazards side-by-side.
 
-Crucially, XORA enforces the Handicap Ledger: a transparent audit documenting 
-the fundamental physical boundaries Earth cannot replicate — such as one-sixth 
-lunar gravity, hard vacuum outgassing, and cryogenic radiation swings."
+With one click, toggle to Elevation Transect mode to compare standardized 25-kilometer 
+LiDAR relief curves. 
+
+Below, the radial Topographic Fingerprint glyph and correlation data table quantify fidelity 
+across six mathematical dimensions, backed by the Handicap Ledger's audit of gravity and 
+atmospheric boundaries."
 
 --------------------------------------------------------------------------------
-[1:24 - 1:52] SCENE 4: RANKINGS LEADERBOARD & INTERACTIVE WEIGHT PLAYGROUND
+[1:24 - 1:52] SCENE 4: LEADERBOARD, DATA TABLE, WEIGHT PLAYGROUND & MISSION PRESETS
 --------------------------------------------------------------------------------
 Visual Actions:
 - Click "Rankings" in the top navbar capsule.
-- Highlight the "#1 Top Baseline Match" executive summary banner.
-- Toggle between Moon and Mars target destinations.
-- Use the candidate search filter to search candidates in real time.
-- In the Weight Playground on the left, adjust sliders for "Slope Distribution" 
-  and "Surface Roughness" — watch the leaderboard table and Monte Carlo rank stability 
-  percentages dynamically adapt!
-- Select two candidates via their checkboxes to trigger the bottom floating 
-  "Launch Dual Scrubber" comparison drawer.
+- Toggle between Moon and Mars candidate ranking leaderboards.
+- Inspect the Candidate Data Table with composite Twin Fidelity percentages and 
+  Monte Carlo rank stability ratings.
+- Test Mission Activity Presets in the Weight Playground:
+  - Click "Rover Traverse", "Lava Tube / Cave", "Polar Ice / Volatiles", and "Excavation & ISRU", 
+    watching candidate rankings re-sort dynamically.
+- Interactively adjust range sliders in the Weight Playground (Relief & Range, Slope Distribution, 
+  Surface Roughness), proving real-time table reactivity.
+- Filter candidates via the live search bar (typing 'caves', clearing).
+- Check 2 candidate boxes to trigger the floating multi-candidate comparison drawer.
 
 Voiceover / Speech:
-"In the Rankings view, XORA applies multi-criteria decision analysis across all 
-terrestrial candidates. 
+"The Terrain Twin Leaderboard delivers deterministic candidate rankings verified by 
+Monte Carlo stability analysis.
 
-Using the interactive Weight Playground, flight directors can customize optimization 
-weights to specific mission profiles — prioritizing slope kinematics for autonomous 
-rovers, or basaltic cavity stability for subterranean habitats. Real-time Monte Carlo 
-stability testing verifies whether a candidate site remains optimal under uncertainty, 
-while dual-selection allows direct side-by-side benchmarking."
+Using the Weight Playground, teams tune priorities to match specific mission requirements. 
+Selecting activity presets — from Rover Traverse to Lava Tube Exploration and Polar Ice Operations — 
+reweights the scoring matrix instantaneously. 
+
+Fine-tune slope, roughness, or lithology sliders to observe real-time reactivity in the data table. 
+Select any two candidates to launch side-by-side comparative inspection."
 
 --------------------------------------------------------------------------------
-[1:52 - 2:05] SCENE 5: CINEMATIC OUTRO & CALL TO ACTION
+[1:52 - 2:05] SCENE 5: CINEMATIC OUTRO & RETURN TO HERO
 --------------------------------------------------------------------------------
 Visual Actions:
-- Click the "XORA" logo to return smoothly to the home hero.
-- Admire the stutter-free, buttery-smooth 60fps orbital rotation of Earth, Moon, 
-  and Mars as the satellites complete their orbits.
+- Click the "XORA" home logo in the top navbar.
+- Return to the 3D celestial hero.
+- Savor the smooth orbital beauty spin of Earth, Moon, and Mars with telemetry satellites.
 
 Voiceover / Speech:
-"By transforming open space agency data into actionable proving ground twins, 
-XORA empowers humanity to test with confidence, rehearse with rigor, and pioneer 
-permanent outposts beyond Earth. 
-
-XORA: Earth, Moon, Mars — Ground-truth proving grounds for humanity's next giant leap."
+"XORA bridges open orbital data and Earth's extreme environments — ensuring human missions 
+to the Moon and Mars train on the most accurate planetary proving grounds on Earth. 
+Thank you."
 ================================================================================

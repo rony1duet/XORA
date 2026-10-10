@@ -51,7 +51,7 @@ const SIGNATURE_PAIRS = [
   {
     name: 'Tranquillitatis ↔ Lanzarote',
     refId: 'lunar-tranquillitatis-pit',
-    earthId: 'lanzarote-lava-tubes',
+    earthId: 'lanzarote-tubes',
     activity: 'lava-tube' as MissionActivity,
     badge: 'Moon · 83.5%'
   },
