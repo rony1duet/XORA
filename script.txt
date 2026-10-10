@@ -1,0 +1,115 @@
+================================================================================
+XORA: EARTH · MOON · MARS — PROTOTYPE DEMO VIDEO SCRIPT & TIMECODES
+Challenge: Identify Earth Locations that Analog Permanent Moon & Mars Bases
+Target Video Duration: ~65 - 75 seconds
+================================================================================
+
+[0:00 - 0:12] SCENE 1: THE HOOK & 3D CELESTIAL PROVING GROUND
+--------------------------------------------------------------------------------
+Visual:
+- Open http://127.0.0.1:3000 in full browser window.
+- The 3D planetary animation is in full view: Earth with glowing Rayleigh 
+  atmosphere, drifting clouds, and night-side city lights; Moon orbiting in 
+  real inclination; Mars on its interplanetary path; and 4 active satellites 
+  (LEO Space Station, GEO Comms, Lunar LRO, and Mars MRO) with pulsing beacons.
+- The sleek aerospace wordmark "XORA: EARTH · MOON · MARS" sits on the left.
+
+Voiceover / Speech:
+"Welcome to XORA — the next-generation planetary terrain analog platform built 
+to accelerate human space exploration. 
+
+Selecting future landing candidates and permanent bases on the Moon and Mars 
+demands rigorous ground truth. Yet until now, Earth analog testing has often 
+relied on visual lookalikes rather than mathematical terrain fidelity. 
+XORA solves this challenge using open orbital altimetry from NASA LOLA, MOLA, 
+and Copernicus."
+
+--------------------------------------------------------------------------------
+[0:12 - 0:24] SCENE 2: INTERACTIVE ORBITS & SIGNATURE BASELINES
+--------------------------------------------------------------------------------
+Visual:
+- Click and drag smoothly on the 3D celestial canvas to rotate the planets in 
+  360-degree space, showcasing the active satellites and orbital physics.
+- Scroll down smoothly to the "Signature Proving Ground Baselines" spotlight section.
+- Hover over the 3 signature twin cards:
+  1) Shackleton Rim (Moon) ↔ Haughton Crater (Canada) [86.4% Match]
+  2) Jezero Delta (Mars) ↔ Atacama Yungay (Chile) [88.1% Match]
+  3) Tranquillitatis Pit (Moon) ↔ Lanzarote Lava Tubes (Spain) [83.5% Match]
+
+Voiceover / Speech:
+"Mission planners can inspect multi-body orbital dynamics in real time. 
+Scrolling down, XORA pairs real mission landing targets with verified 
+terrestrial baselines: Artemis III candidate Shackleton Rim matched against 
+the Arctic impact breccia of Haughton Crater, and the Perseverance rover's 
+Jezero delta calibrated against the hyper-arid soils of Chile's Atacama Desert."
+
+--------------------------------------------------------------------------------
+[0:24 - 0:38] SCENE 3: THE ATLAS EXPLORER & GLOBAL MULTI-BIOME SEARCH
+--------------------------------------------------------------------------------
+Visual:
+- Click "Explore Atlas" in the top navbar capsule.
+- Toggle the celestial filter pills: click "Moon", then click "Mars".
+- Notice the interactive cards updating instantly.
+- Click on the "Atacama Yungay Basin" candidate card to show its detailed 
+  modal or metrics (slope distributions, geological class, verified coordinates).
+
+Voiceover / Speech:
+"In the Atlas Explorer, mission teams can search across 12 calibrated terrestrial 
+proving grounds spanning polar permafrost, volcanic lava tubes, and hyper-arid 
+basins. Filtering between lunar and Martian destinations immediately surfaces 
+candidate test grounds complete with peer-reviewed mission citations, 10-meter 
+spatial altimetry, and operational readiness data."
+
+--------------------------------------------------------------------------------
+[0:38 - 0:54] SCENE 4: 1:1 DUAL-WORLD SCRUBBER & THE HANDICAP LEDGER
+--------------------------------------------------------------------------------
+Visual:
+- Click "Compare" in the top navbar capsule to open the Dual-World Comparator.
+- Click the preset pill "Jezero Delta ↔ Atacama" or "Shackleton Rim ↔ Haughton".
+- Grab the 1:1 Split-World Scrubber handle and drag it left and right across 
+  the terrain to reveal the hillshade cross-section alignment.
+- Scroll down slightly to display the Topographic Fingerprint radial glyph and 
+  the 6 metric correlation bars (Elevation, Slope CDF, RMS Roughness, Rock Substrate).
+- Point to "The Handicap Ledger" on the right.
+
+Voiceover / Speech:
+"Our Split-World Scrubber unlocks pixel-locked 1:1 topographic cross-sections, 
+allowing geologists to directly compare extraterrestrial LiDAR against Earth's 
+surface topography. 
+
+Below the scrubber, our Topographic Fingerprint evaluates slope gradients, 
+10-meter surface roughness, and boulder hazard densities. And because scientific 
+honesty is paramount, our Handicap Ledger documents the operational boundaries 
+Earth cannot replicate — from one-sixth gravity offsets to vacuum outgassing."
+
+--------------------------------------------------------------------------------
+[0:54 - 1:10] SCENE 5: RANKINGS LEADERBOARD & THE WEIGHT PLAYGROUND
+--------------------------------------------------------------------------------
+Visual:
+- Click "Rankings" in the top navbar capsule.
+- Highlight the "#1 Top Baseline Match" spotlight card at the top.
+- Toggle between Moon and Mars target destinations.
+- In the Weight Playground on the left, adjust the "Slope Distribution" or 
+  "Surface Roughness" sliders — watch the leaderboard table and Monte Carlo 
+  stability percentages react in real time!
+- Check two candidate checkboxes to reveal the floating "Launch Dual Scrubber" 
+  action capsule at the bottom.
+
+Voiceover / Speech:
+"Finally, the Rankings view provides deterministic multi-criteria optimization. 
+Using the interactive Weight Playground, mission directors can adjust criteria 
+weights in real time — prioritizing slope kinematics for rover drive testing or 
+subsurface basalt for astronaut cave descent. Real-time Monte Carlo stability 
+testing ensures resilient site selection for humanity's permanent return to the Moon 
+and journey to Mars."
+
+--------------------------------------------------------------------------------
+[1:10 - 1:15] OUTRO & CALL TO ACTION
+--------------------------------------------------------------------------------
+Visual:
+- Click the "XORA" logo in the top navbar to return smoothly to the 3D celestial hero.
+- Hover gently over Earth and Mars as the satellites complete their orbits.
+
+Voiceover / Speech:
+"XORA: Earth, Moon, Mars. Ground-truth terrain twins for humanity's next giant leap."
+================================================================================
