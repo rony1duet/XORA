@@ -1,15 +1,20 @@
 /**
  * XORA Celestial Hero 3D Component
- * Physically shaded interactive planetary system:
- * - Earth with axial tilt, specular ocean reflections, procedural continent biomes, independent cloud layer, and atmospheric Fresnel glow.
- * - Moon revolving along an inclined elliptical lunar orbit around Earth with visible orbital trajectory ring.
- * - Mars revolving on its interplanetary orbital trajectory with distinct iron-oxide topography and polar cap.
+ * Ultra-realistic WebGL planetary system:
+ * - Earth with realistic axial tilt, specular ocean glint, night-side city lights emission, independent cloud layer, and Rayleigh atmospheric Fresnel aura.
+ * - Satellites in orbit:
+ *   - LEO Science Station orbiting Earth with dual solar wings and telemetry beacon.
+ *   - GEO Communications Satellite orbiting Earth in inclined geosynchronous orbit.
+ *   - LRO (Lunar Reconnaissance Orbiter) orbiting the Moon.
+ *   - MRO (Mars Reconnaissance Orbiter) orbiting Mars.
+ * - Moon revolving along inclined lunar trajectory with real basaltic maria shading.
+ * - Mars revolving on interplanetary path with polar ice cap and thin CO2 atmospheric haze.
  * - Interactive raycasting, hover telemetry cards, smooth orbit drag, and responsive framing.
  */
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { Compass, GitCompare, RotateCcw, Play, Pause, ExternalLink } from 'lucide-react';
+import { Compass, GitCompare, Play, Pause } from 'lucide-react';
 import { CelestialBody } from '../types/analog';
 
 interface CelestialHero3DProps {
@@ -34,19 +39,16 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
     y: number;
   } | null>(null);
 
-  // References to communicate with Three.js animation loop
   const isRotatingRef = useRef<boolean>(true);
   useEffect(() => {
     isRotatingRef.current = isRotating;
   }, [isRotating]);
 
-  const targetFocusRef = useRef<string | null>(null);
-
   useEffect(() => {
     const container = mountRef.current;
     if (!container) return;
 
-    // 1. WebGL Support Verification
+    // 1. WebGL Verification
     const testCanvas = document.createElement('canvas');
     const gl = testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl');
     if (!gl) {
@@ -54,7 +56,7 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
       return;
     }
 
-    // 2. Scene, Camera, Renderer Setup
+    // 2. Scene, Camera, Renderer
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
       42,
@@ -72,43 +74,42 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
+    renderer.toneMappingExposure = 1.2;
     container.appendChild(renderer.domElement);
 
-    // 3. Deep Space Starfield & Subtle Cosmic Dust
+    // 3. Realistic Deep Space Starfield
     const starGeo = new THREE.BufferGeometry();
-    const starCount = 900;
+    const starCount = 1000;
     const starPositions = new Float32Array(starCount * 3);
     const starColors = new Float32Array(starCount * 3);
 
     for (let i = 0; i < starCount * 3; i += 3) {
-      starPositions[i] = (Math.random() - 0.5) * 140;
-      starPositions[i + 1] = (Math.random() - 0.5) * 120;
-      starPositions[i + 2] = (Math.random() - 0.5) * 80 - 25;
+      starPositions[i] = (Math.random() - 0.5) * 150;
+      starPositions[i + 1] = (Math.random() - 0.5) * 130;
+      starPositions[i + 2] = (Math.random() - 0.5) * 90 - 25;
 
-      // Subtle cyan / warm / white stars
       const tint = Math.random();
-      if (tint > 0.8) {
-        starColors[i] = 0.55;
+      if (tint > 0.85) {
+        starColors[i] = 0.6;
         starColors[i + 1] = 0.85;
         starColors[i + 2] = 1.0;
-      } else if (tint > 0.6) {
+      } else if (tint > 0.65) {
         starColors[i] = 1.0;
-        starColors[i + 1] = 0.82;
-        starColors[i + 2] = 0.65;
+        starColors[i + 1] = 0.85;
+        starColors[i + 2] = 0.7;
       } else {
-        starColors[i] = 0.85;
-        starColors[i + 1] = 0.9;
-        starColors[i + 2] = 0.95;
+        starColors[i] = 0.9;
+        starColors[i + 1] = 0.95;
+        starColors[i + 2] = 1.0;
       }
     }
     starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
     starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
     const starMat = new THREE.PointsMaterial({
-      size: 0.28,
+      size: 0.3,
       vertexColors: true,
       transparent: true,
-      opacity: 0.65,
+      opacity: 0.7,
     });
     const starPoints = new THREE.Points(starGeo, starMat);
     scene.add(starPoints);
@@ -117,16 +118,15 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
     const systemGroup = new THREE.Group();
     scene.add(systemGroup);
 
-    // Base position for desktop: framed on the right stage
     const baseOffset = { x: 3.6, y: 0.2, z: 0 };
     systemGroup.position.set(baseOffset.x, baseOffset.y, baseOffset.z);
 
     // -------------------------------------------------------------
-    // PROCEDURAL TEXTURE GENERATORS
+    // PROCEDURAL REALISTIC TEXTURES
     // -------------------------------------------------------------
 
-    // A. Earth Texture Generator (Continents, Biomes, Ocean Depth)
-    const createEarthTexture = (): { diffuse: THREE.CanvasTexture; specular: THREE.CanvasTexture } => {
+    // A. Earth Diffuse, Specular & Night City Lights
+    const createEarthTextures = () => {
       const canvas = document.createElement('canvas');
       canvas.width = 2048;
       canvas.height = 1024;
@@ -134,26 +134,26 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
 
       // Deep Ocean Base
       const oceanGrad = ctx.createLinearGradient(0, 0, 0, 1024);
-      oceanGrad.addColorStop(0, '#041528');
-      oceanGrad.addColorStop(0.5, '#072445');
-      oceanGrad.addColorStop(1, '#041528');
+      oceanGrad.addColorStop(0, '#031222');
+      oceanGrad.addColorStop(0.5, '#052242');
+      oceanGrad.addColorStop(1, '#031222');
       ctx.fillStyle = oceanGrad;
       ctx.fillRect(0, 0, 2048, 1024);
 
-      // Continental Shelf Shallow Waters (Turquoise fringing)
-      ctx.fillStyle = '#0a4266';
-      for (let i = 0; i < 70; i++) {
+      // Shallow Coastal Shelf
+      ctx.fillStyle = '#0a3d5f';
+      for (let i = 0; i < 75; i++) {
         const x = (Math.sin(i * 1.7) * 0.5 + 0.5) * 2048;
         const y = 160 + (Math.cos(i * 2.3) * 0.5 + 0.5) * 700;
-        const r = 70 + (i % 9) * 16;
+        const r = 70 + (i % 9) * 18;
         ctx.beginPath();
         ctx.arc(x, y, r, 0, Math.PI * 2);
         ctx.fill();
       }
 
       // Landmasses: Green Biomes
-      ctx.fillStyle = '#1c4430';
-      for (let i = 0; i < 55; i++) {
+      ctx.fillStyle = '#173c28';
+      for (let i = 0; i < 60; i++) {
         const x = ((i * 137.5) % 2048);
         const y = 180 + ((i * 73) % 660);
         const r = 45 + ((i * 17) % 85);
@@ -162,9 +162,9 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
         ctx.fill();
       }
 
-      // Arid / Desert belts (Sahara, Atacama, Outback)
-      ctx.fillStyle = '#82653c';
-      for (let i = 0; i < 30; i++) {
+      // Arid & Desert belts
+      ctx.fillStyle = '#7a5e38';
+      for (let i = 0; i < 35; i++) {
         const x = ((i * 211) % 2048);
         const y = 300 + ((i * 91) % 420);
         const r = 30 + ((i * 13) % 55);
@@ -173,12 +173,12 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
         ctx.fill();
       }
 
-      // High Mountain alpine snow caps
+      // Alpine Snow Peaks
       ctx.fillStyle = '#cbd5e1';
-      for (let i = 0; i < 18; i++) {
+      for (let i = 0; i < 20; i++) {
         const x = ((i * 289) % 2048);
         const y = 250 + ((i * 87) % 520);
-        const r = 12 + ((i * 5) % 20);
+        const r = 14 + ((i * 5) % 22);
         ctx.beginPath();
         ctx.arc(x, y, r, 0, Math.PI * 2);
         ctx.fill();
@@ -186,27 +186,48 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
 
       // Polar Ice Caps
       ctx.fillStyle = '#e2e8f0';
-      ctx.fillRect(0, 0, 2048, 70);
-      ctx.fillRect(0, 954, 2048, 70);
+      ctx.fillRect(0, 0, 2048, 75);
+      ctx.fillRect(0, 949, 2048, 75);
 
       const diffuse = new THREE.CanvasTexture(canvas);
       diffuse.wrapS = THREE.RepeatWrapping;
 
-      // Specular Map (ocean shines, land is matte)
+      // Specular Map
       const specCanvas = document.createElement('canvas');
       specCanvas.width = 1024;
       specCanvas.height = 512;
       const sCtx = specCanvas.getContext('2d')!;
-      sCtx.fillStyle = '#445566'; // ocean reflection
+      sCtx.fillStyle = '#556677';
       sCtx.fillRect(0, 0, 1024, 512);
       sCtx.drawImage(canvas, 0, 0, 1024, 512);
-      const spec = new THREE.CanvasTexture(specCanvas);
+      const specular = new THREE.CanvasTexture(specCanvas);
 
-      return { diffuse, specular: spec };
+      // Night City Lights Emissive Map
+      const nightCanvas = document.createElement('canvas');
+      nightCanvas.width = 1024;
+      nightCanvas.height = 512;
+      const nCtx = nightCanvas.getContext('2d')!;
+      nCtx.fillStyle = '#000000';
+      nCtx.fillRect(0, 0, 1024, 512);
+
+      // Golden city light clusters across continents
+      nCtx.fillStyle = 'rgba(254, 215, 170, 0.85)';
+      for (let i = 0; i < 220; i++) {
+        const nx = ((i * 67.3) % 1024);
+        const ny = 120 + ((i * 43.1) % 270);
+        const nr = 1.2 + (Math.random() * 2.2);
+        nCtx.beginPath();
+        nCtx.arc(nx, ny, nr, 0, Math.PI * 2);
+        nCtx.fill();
+      }
+      const nightLights = new THREE.CanvasTexture(nightCanvas);
+      nightLights.wrapS = THREE.RepeatWrapping;
+
+      return { diffuse, specular, nightLights };
     };
 
-    // B. Cloud Layer Generator
-    const createCloudTexture = (): THREE.CanvasTexture => {
+    // B. Clouds Texture
+    const createCloudTexture = () => {
       const canvas = document.createElement('canvas');
       canvas.width = 1024;
       canvas.height = 512;
@@ -214,15 +235,14 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, 1024, 512);
 
-      // Cloud swirls
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-      for (let i = 0; i < 65; i++) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.52)';
+      for (let i = 0; i < 70; i++) {
         const x = Math.random() * 1024;
-        const y = 90 + Math.random() * 332;
-        const w = 50 + Math.random() * 130;
-        const h = 18 + Math.random() * 45;
+        const y = 80 + Math.random() * 352;
+        const w = 55 + Math.random() * 140;
+        const h = 16 + Math.random() * 45;
         ctx.beginPath();
-        ctx.ellipse(x, y, w, h, (Math.random() - 0.5) * 0.4, 0, Math.PI * 2);
+        ctx.ellipse(x, y, w, h, (Math.random() - 0.5) * 0.45, 0, Math.PI * 2);
         ctx.fill();
       }
 
@@ -231,36 +251,35 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
       return texture;
     };
 
-    // C. Moon Texture Generator
-    const createMoonTexture = (): THREE.CanvasTexture => {
+    // C. Moon Texture
+    const createMoonTexture = () => {
       const canvas = document.createElement('canvas');
       canvas.width = 1024;
       canvas.height = 512;
       const ctx = canvas.getContext('2d')!;
 
-      // Lunar Anorthosite Highland Base
       ctx.fillStyle = '#64748b';
       ctx.fillRect(0, 0, 1024, 512);
 
-      // Lunar Basalt Maria (Darker plains)
-      ctx.fillStyle = '#2d3748';
-      for (let i = 0; i < 24; i++) {
+      // Dark Basalt Maria
+      ctx.fillStyle = '#263140';
+      for (let i = 0; i < 28; i++) {
         const mx = ((i * 123) % 1024);
         const my = 80 + ((i * 67) % 352);
-        const mr = 28 + ((i * 15) % 65);
+        const mr = 26 + ((i * 15) % 68);
         ctx.beginPath();
         ctx.arc(mx, my, mr, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // Impact Craters with Bright Ejecta Rays
+      // Impact Craters with Ejecta Rays
       ctx.strokeStyle = '#94a3b8';
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1.8;
       ctx.fillStyle = '#1e293b';
-      for (let i = 0; i < 50; i++) {
+      for (let i = 0; i < 60; i++) {
         const cx = Math.random() * 1024;
         const cy = Math.random() * 512;
-        const cr = 4 + Math.random() * 18;
+        const cr = 4 + Math.random() * 16;
         ctx.beginPath();
         ctx.arc(cx, cy, cr, 0, Math.PI * 2);
         ctx.fill();
@@ -272,24 +291,23 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
       return texture;
     };
 
-    // D. Mars Texture Generator
-    const createMarsTexture = (): THREE.CanvasTexture => {
+    // D. Mars Texture
+    const createMarsTexture = () => {
       const canvas = document.createElement('canvas');
       canvas.width = 1024;
       canvas.height = 512;
       const ctx = canvas.getContext('2d')!;
 
-      // Rust / Iron-Oxide Base
       const rustGrad = ctx.createLinearGradient(0, 0, 0, 512);
-      rustGrad.addColorStop(0, '#b44414');
-      rustGrad.addColorStop(0.5, '#c8501c');
-      rustGrad.addColorStop(1, '#9b380f');
+      rustGrad.addColorStop(0, '#b84614');
+      rustGrad.addColorStop(0.5, '#cc541d');
+      rustGrad.addColorStop(1, '#9e390f');
       ctx.fillStyle = rustGrad;
       ctx.fillRect(0, 0, 1024, 512);
 
-      // Dark Volcanic Basaltic Highlands (Syrtis Major & Acidalia)
-      ctx.fillStyle = '#6e2712';
-      for (let i = 0; i < 28; i++) {
+      // Volcanic dark plains
+      ctx.fillStyle = '#6b2510';
+      for (let i = 0; i < 30; i++) {
         const x = ((i * 151) % 1024);
         const y = 90 + ((i * 79) % 332);
         const r = 24 + ((i * 17) % 68);
@@ -298,22 +316,22 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
         ctx.fill();
       }
 
-      // Valles Marineris Canyon Rift Scar
-      ctx.strokeStyle = '#4e1c0c';
+      // Valles Marineris canyon
+      ctx.strokeStyle = '#4a1a0b';
       ctx.lineWidth = 7;
       ctx.beginPath();
-      ctx.moveTo(350, 260);
-      ctx.bezierCurveTo(460, 275, 540, 250, 680, 265);
+      ctx.moveTo(340, 260);
+      ctx.bezierCurveTo(460, 275, 540, 250, 690, 265);
       ctx.stroke();
 
-      // North & South Polar Ice Caps (CO2 Frost)
+      // Polar Ice Caps
       ctx.fillStyle = '#f8fafc';
       ctx.beginPath();
-      ctx.ellipse(512, 18, 90, 16, 0, 0, Math.PI * 2);
+      ctx.ellipse(512, 18, 95, 16, 0, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.beginPath();
-      ctx.ellipse(512, 496, 75, 14, 0, 0, Math.PI * 2);
+      ctx.ellipse(512, 496, 80, 15, 0, 0, Math.PI * 2);
       ctx.fill();
 
       const texture = new THREE.CanvasTexture(canvas);
@@ -322,40 +340,127 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
     };
 
     // -------------------------------------------------------------
-    // CELESTIAL BODIES CREATION
+    // SATELLITE 3D MODEL FACTORY
+    // -------------------------------------------------------------
+    const createSatelliteModel = (options: {
+      busColor?: number;
+      solarColor?: number;
+      beaconColor?: number;
+      scale?: number;
+    }) => {
+      const group = new THREE.Group();
+
+      // Satellite Main Body (Thermal insulation foil bus)
+      const busGeo = new THREE.BoxGeometry(0.24, 0.24, 0.34);
+      const busMat = new THREE.MeshStandardMaterial({
+        color: options.busColor || 0xd4af37, // gold foil
+        metalness: 0.85,
+        roughness: 0.25,
+      });
+      const bus = new THREE.Mesh(busGeo, busMat);
+      group.add(bus);
+
+      // Solar Panel Wings (Dual panels with blue photovoltaic cell finish)
+      const wingGeo = new THREE.BoxGeometry(0.72, 0.02, 0.22);
+      const wingMat = new THREE.MeshStandardMaterial({
+        color: options.solarColor || 0x1e3a8a, // deep blue solar cell
+        metalness: 0.9,
+        roughness: 0.15,
+      });
+
+      const leftWing = new THREE.Mesh(wingGeo, wingMat);
+      leftWing.position.set(0.56, 0, 0);
+      group.add(leftWing);
+
+      const rightWing = new THREE.Mesh(wingGeo, wingMat);
+      rightWing.position.set(-0.56, 0, 0);
+      group.add(rightWing);
+
+      // Communication Dish Antenna
+      const dishGeo = new THREE.SphereGeometry(0.12, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2);
+      const dishMat = new THREE.MeshStandardMaterial({
+        color: 0xe2e8f0,
+        metalness: 0.7,
+        roughness: 0.3,
+        side: THREE.DoubleSide,
+      });
+      const dish = new THREE.Mesh(dishGeo, dishMat);
+      dish.rotation.x = Math.PI;
+      dish.position.set(0, 0.26, 0);
+      group.add(dish);
+
+      // Telemetry Beacon LED
+      const beaconGeo = new THREE.SphereGeometry(0.045, 8, 8);
+      const beaconMat = new THREE.MeshBasicMaterial({
+        color: options.beaconColor || 0x22d3ee,
+      });
+      const beacon = new THREE.Mesh(beaconGeo, beaconMat);
+      beacon.position.set(0, 0.34, 0);
+      group.add(beacon);
+
+      const s = options.scale || 1.0;
+      group.scale.set(s, s, s);
+
+      return { group, beacon };
+    };
+
+    // Helper: Create Glowing Orbit Trajectory Ring
+    const createOrbitRing = (radius: number, color: number, opacity = 0.25) => {
+      const geo = new THREE.BufferGeometry();
+      const points = 128;
+      const vertices = new Float32Array((points + 1) * 3);
+      for (let i = 0; i <= points; i++) {
+        const theta = (i / points) * Math.PI * 2;
+        vertices[i * 3] = Math.cos(theta) * radius;
+        vertices[i * 3 + 1] = 0;
+        vertices[i * 3 + 2] = Math.sin(theta) * radius;
+      }
+      geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+      const mat = new THREE.LineBasicMaterial({
+        color,
+        transparent: true,
+        opacity,
+      });
+      return new THREE.Line(geo, mat);
+    };
+
+    // -------------------------------------------------------------
+    // PLANETARY MESHES
     // -------------------------------------------------------------
 
     // 1. EARTH PRIMARY
     const earthRadius = 3.8;
     const earthGeo = new THREE.SphereGeometry(earthRadius, 64, 64);
-    const { diffuse: earthTex, specular: earthSpec } = createEarthTexture();
+    const { diffuse: earthTex, specular: earthSpec, nightLights: earthNight } = createEarthTextures();
 
     const earthMat = new THREE.MeshStandardMaterial({
       map: earthTex,
       roughness: 0.65,
       metalness: 0.15,
       roughnessMap: earthSpec,
+      emissiveMap: earthNight,
+      emissive: new THREE.Color(0xffe49e),
+      emissiveIntensity: 0.5,
     });
     const earthMesh = new THREE.Mesh(earthGeo, earthMat);
-    // Real axial tilt: 23.4 degrees (0.408 rad)
-    earthMesh.rotation.z = 0.408;
+    earthMesh.rotation.z = 0.408; // 23.4 degrees tilt
     earthMesh.name = 'earth';
     systemGroup.add(earthMesh);
 
-    // Earth Cloud Layer (Subtle outer sphere with independent spin)
+    // Earth Cloud Layer
     const cloudGeo = new THREE.SphereGeometry(earthRadius + 0.08, 48, 48);
     const cloudTex = createCloudTexture();
     const cloudMat = new THREE.MeshStandardMaterial({
       map: cloudTex,
       transparent: true,
-      opacity: 0.45,
+      opacity: 0.48,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
     });
     const cloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
     earthMesh.add(cloudMesh);
 
-    // Earth Atmosphere Rayleigh Scattering Fresnel Glow
+    // Earth Atmospheric Rayleigh Scattering Glow
     const atmosGeo = new THREE.SphereGeometry(earthRadius + 0.28, 48, 48);
     const atmosMat = new THREE.ShaderMaterial({
       vertexShader: `
@@ -368,8 +473,8 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
       fragmentShader: `
         varying vec3 vNormal;
         void main() {
-          float intensity = pow(0.68 - dot(vNormal, vec3(0, 0, 1.0)), 2.2);
-          gl_FragColor = vec4(0.24, 0.72, 0.98, 1.0) * intensity * 0.95;
+          float intensity = pow(0.66 - dot(vNormal, vec3(0, 0, 1.0)), 2.2);
+          gl_FragColor = vec4(0.22, 0.72, 0.98, 1.0) * intensity * 0.95;
         }
       `,
       blending: THREE.AdditiveBlending,
@@ -379,34 +484,57 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
     const atmosMesh = new THREE.Mesh(atmosGeo, atmosMat);
     earthMesh.add(atmosMesh);
 
-    // 2. LUNAR ORBIT & THE MOON
-    const lunarOrbitRadius = 6.8;
+    // -------------------------------------------------------------
+    // EARTH ORBITING SATELLITES
+    // -------------------------------------------------------------
+    // Satellite A: Low Earth Orbit (LEO) Space Station / Science Satellite
+    const leoOrbitRadius = 5.1;
+    const leoOrbitGroup = new THREE.Group();
+    leoOrbitGroup.rotation.x = 0.52; // 30 deg inclination
+    leoOrbitGroup.rotation.z = -0.25;
+    systemGroup.add(leoOrbitGroup);
+
+    const leoOrbitRing = createOrbitRing(leoOrbitRadius, 0x38bdf8, 0.28);
+    leoOrbitGroup.add(leoOrbitRing);
+
+    const { group: leoSatellite, beacon: leoBeacon } = createSatelliteModel({
+      busColor: 0xe2e8f0, // silver/white space station
+      solarColor: 0x1e40af,
+      beaconColor: 0x38bdf8,
+      scale: 0.9,
+    });
+    leoOrbitGroup.add(leoSatellite);
+
+    // Satellite B: Geostationary (GEO) Communications Satellite
+    const geoOrbitRadius = 6.2;
+    const geoOrbitGroup = new THREE.Group();
+    geoOrbitGroup.rotation.x = -0.18;
+    geoOrbitGroup.rotation.y = 0.35;
+    systemGroup.add(geoOrbitGroup);
+
+    const geoOrbitRing = createOrbitRing(geoOrbitRadius, 0x06b6d4, 0.22);
+    geoOrbitGroup.add(geoOrbitRing);
+
+    const { group: geoSatellite, beacon: geoBeacon } = createSatelliteModel({
+      busColor: 0xd4af37, // gold thermal foil
+      solarColor: 0x1d4ed8,
+      beaconColor: 0x10b981,
+      scale: 0.85,
+    });
+    geoOrbitGroup.add(geoSatellite);
+
+    // -------------------------------------------------------------
+    // 2. LUNAR ORBIT & THE MOON (with Lunar Reconnaissance Orbiter)
+    // -------------------------------------------------------------
+    const lunarOrbitRadius = 7.4;
     const lunarOrbitGroup = new THREE.Group();
-    // Lunar orbital inclination ~12 degrees
     lunarOrbitGroup.rotation.x = 0.22;
     lunarOrbitGroup.rotation.z = -0.16;
     systemGroup.add(lunarOrbitGroup);
 
-    // Visible Lunar Orbit Trajectory Ring
-    const lunarOrbitGeo = new THREE.BufferGeometry();
-    const orbitPointsCount = 128;
-    const lunarOrbitPoints = new Float32Array((orbitPointsCount + 1) * 3);
-    for (let i = 0; i <= orbitPointsCount; i++) {
-      const theta = (i / orbitPointsCount) * Math.PI * 2;
-      lunarOrbitPoints[i * 3] = Math.cos(theta) * lunarOrbitRadius;
-      lunarOrbitPoints[i * 3 + 1] = 0;
-      lunarOrbitPoints[i * 3 + 2] = Math.sin(theta) * lunarOrbitRadius;
-    }
-    lunarOrbitGeo.setAttribute('position', new THREE.BufferAttribute(lunarOrbitPoints, 3));
-    const lunarOrbitMat = new THREE.LineBasicMaterial({
-      color: 0x38bdf8,
-      transparent: true,
-      opacity: 0.28,
-    });
-    const lunarOrbitLine = new THREE.Line(lunarOrbitGeo, lunarOrbitMat);
-    lunarOrbitGroup.add(lunarOrbitLine);
+    const lunarOrbitRing = createOrbitRing(lunarOrbitRadius, 0x38bdf8, 0.25);
+    lunarOrbitGroup.add(lunarOrbitRing);
 
-    // The Moon Mesh
     const moonRadius = 1.05;
     const moonGeo = new THREE.SphereGeometry(moonRadius, 32, 32);
     const moonTex = createMoonTexture();
@@ -419,15 +547,34 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
     moonMesh.name = 'moon';
     lunarOrbitGroup.add(moonMesh);
 
-    // 3. MARS INTERPLANETARY ORBIT
-    const marsOrbitRadiusX = 11.2;
-    const marsOrbitRadiusZ = 8.8;
+    // Satellite C: Lunar Reconnaissance Orbiter (LRO around Moon)
+    const lroOrbitRadius = 1.8;
+    const lroOrbitGroup = new THREE.Group();
+    lroOrbitGroup.rotation.x = 1.35; // Polar orbit around moon
+    moonMesh.add(lroOrbitGroup);
+
+    const lroOrbitRing = createOrbitRing(lroOrbitRadius, 0x67e8f9, 0.3);
+    lroOrbitGroup.add(lroOrbitRing);
+
+    const { group: lroSatellite, beacon: lroBeacon } = createSatelliteModel({
+      busColor: 0xd4af37,
+      solarColor: 0x2563eb,
+      beaconColor: 0x22d3ee,
+      scale: 0.55,
+    });
+    lroOrbitGroup.add(lroSatellite);
+
+    // -------------------------------------------------------------
+    // 3. MARS & INTERPLANETARY ORBIT (with Mars Reconnaissance Orbiter)
+    // -------------------------------------------------------------
+    const marsOrbitRadiusX = 11.5;
+    const marsOrbitRadiusZ = 9.0;
     const marsOrbitGroup = new THREE.Group();
     marsOrbitGroup.rotation.x = -0.18;
     marsOrbitGroup.rotation.y = 0.25;
     systemGroup.add(marsOrbitGroup);
 
-    // Visible Mars Orbit Trajectory Ring
+    // Elliptical Mars Orbit Track
     const marsOrbitGeo = new THREE.BufferGeometry();
     const marsPointsCount = 128;
     const marsOrbitPoints = new Float32Array((marsPointsCount + 1) * 3);
@@ -446,7 +593,6 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
     const marsOrbitLine = new THREE.Line(marsOrbitGeo, marsOrbitMat);
     marsOrbitGroup.add(marsOrbitLine);
 
-    // Mars Mesh
     const marsRadius = 1.6;
     const marsGeo = new THREE.SphereGeometry(marsRadius, 48, 48);
     const marsTex = createMarsTexture();
@@ -456,11 +602,11 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
       metalness: 0.08,
     });
     const marsMesh = new THREE.Mesh(marsGeo, marsMat);
-    marsMesh.rotation.z = 0.44; // 25.2 degrees axial tilt
+    marsMesh.rotation.z = 0.44; // 25.2 degrees tilt
     marsMesh.name = 'mars';
     marsOrbitGroup.add(marsMesh);
 
-    // Mars Thin Atmospheric Rim Glow
+    // Mars Atmosphere Rim Haze
     const marsAtmosGeo = new THREE.SphereGeometry(marsRadius + 0.12, 32, 32);
     const marsAtmosMat = new THREE.ShaderMaterial({
       vertexShader: `
@@ -484,25 +630,39 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
     const marsAtmosMesh = new THREE.Mesh(marsAtmosGeo, marsAtmosMat);
     marsMesh.add(marsAtmosMesh);
 
+    // Satellite D: Mars Reconnaissance Orbiter (MRO around Mars)
+    const mroOrbitRadius = 2.45;
+    const mroOrbitGroup = new THREE.Group();
+    mroOrbitGroup.rotation.z = 1.25;
+    marsMesh.add(mroOrbitGroup);
+
+    const mroOrbitRing = createOrbitRing(mroOrbitRadius, 0xfb923c, 0.32);
+    mroOrbitGroup.add(mroOrbitRing);
+
+    const { group: mroSatellite, beacon: mroBeacon } = createSatelliteModel({
+      busColor: 0xd97706,
+      solarColor: 0x1e3a8a,
+      beaconColor: 0xf59e0b,
+      scale: 0.65,
+    });
+    mroOrbitGroup.add(mroSatellite);
+
     // -------------------------------------------------------------
     // LIGHTING SETUP
     // -------------------------------------------------------------
-    // Sun key light
-    const sunLight = new THREE.DirectionalLight(0xfff5e6, 2.6);
+    const sunLight = new THREE.DirectionalLight(0xfff7ee, 2.7);
     sunLight.position.set(16, 9, 14);
     scene.add(sunLight);
 
-    // Deep space fill light (cyan-hued cosmic reflection)
     const spaceFillLight = new THREE.DirectionalLight(0x0ea5e9, 0.7);
     spaceFillLight.position.set(-14, -6, -8);
     scene.add(spaceFillLight);
 
-    // Ambient baseline
-    const ambientLight = new THREE.AmbientLight(0x0b1324, 0.65);
+    const ambientLight = new THREE.AmbientLight(0x0b1324, 0.6);
     scene.add(ambientLight);
 
     // -------------------------------------------------------------
-    // INTERACTIVE CONTROLS & RAYCASTING
+    // INTERACTION & RAYCASTING
     // -------------------------------------------------------------
     const raycaster = new THREE.Raycaster();
     const mouseVector = new THREE.Vector2();
@@ -515,7 +675,6 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
     let velocityY = 0;
 
     const onPointerDown = (e: MouseEvent) => {
-      // Check if clicking directly on a planet
       const rect = container.getBoundingClientRect();
       mouseVector.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       mouseVector.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -540,7 +699,6 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
       const clientX = e.clientX;
       const clientY = e.clientY;
 
-      // Update Raycast Hover
       mouseVector.x = ((clientX - rect.left) / rect.width) * 2 - 1;
       mouseVector.y = -((clientY - rect.top) / rect.height) * 2 + 1;
 
@@ -553,11 +711,10 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
         setHoveredPlanet(name);
         container.style.cursor = 'pointer';
 
-        // Set screen telemetry position
         if (name === 'earth') {
           setActiveTelemetry({
             name: 'Earth Primary',
-            sub: '12 Proving Ground Sites',
+            sub: '12 Proving Ground Sites · 2 Active Satellites',
             gravity: '9.81 m/s²',
             targetBody: undefined,
             x: clientX - rect.left,
@@ -566,7 +723,7 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
         } else if (name === 'moon') {
           setActiveTelemetry({
             name: 'Moon Reference',
-            sub: 'Artemis Polar Sites',
+            sub: 'Artemis Polar Sites · LRO Orbiting',
             gravity: '1.62 m/s²',
             targetBody: 'moon',
             x: clientX - rect.left,
@@ -575,7 +732,7 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
         } else if (name === 'mars') {
           setActiveTelemetry({
             name: 'Mars Reference',
-            sub: 'Jezero · Gale · Oxia',
+            sub: 'Jezero · Gale · Oxia · MRO Orbiting',
             gravity: '3.71 m/s²',
             targetBody: 'mars',
             x: clientX - rect.left,
@@ -622,15 +779,12 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
       renderer.setSize(width, height);
 
       if (width < 640) {
-        // Mobile phone
         systemGroup.position.set(0, -3.2, -4.5);
         systemGroup.scale.set(0.68, 0.68, 0.68);
       } else if (width < 1024) {
-        // Tablet / small screen
         systemGroup.position.set(1.2, -2.4, -2.5);
         systemGroup.scale.set(0.8, 0.8, 0.8);
       } else {
-        // Desktop / large display: right half stage
         systemGroup.position.set(baseOffset.x, baseOffset.y, baseOffset.z);
         systemGroup.scale.set(1.0, 1.0, 1.0);
       }
@@ -644,14 +798,17 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
     let animId: number;
     let moonOrbitAngle = 0.8;
     let marsOrbitAngle = 3.6;
+    let leoSatAngle = 1.2;
+    let geoSatAngle = 4.5;
+    let lroSatAngle = 0.5;
+    let mroSatAngle = 2.1;
 
     const clock = new THREE.Clock();
 
     const animate = () => {
       animId = requestAnimationFrame(animate);
-      const delta = clock.getDelta();
+      const elapsedTime = clock.getElapsedTime();
 
-      // Inertial damping from drag
       if (!isDragging) {
         velocityX *= 0.94;
         velocityY *= 0.94;
@@ -659,25 +816,54 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
         systemGroup.rotation.x += velocityY;
       }
 
-      // Orbital Revolutions & Axial Rotations
       if (isRotatingRef.current) {
-        // 1. Earth rotates on axis + independent cloud drift
+        // 1. Earth Rotation & Clouds
         earthMesh.rotation.y += 0.0022;
         cloudMesh.rotation.y += 0.0031;
 
-        // 2. Moon revolves in elliptical orbit around Earth
+        // 2. Satellites Revolutions around Earth
+        leoSatAngle += 0.018; // Fast LEO orbital speed
+        leoSatellite.position.x = Math.cos(leoSatAngle) * leoOrbitRadius;
+        leoSatellite.position.z = Math.sin(leoSatAngle) * leoOrbitRadius;
+        leoSatellite.rotation.y = -leoSatAngle;
+
+        geoSatAngle += 0.007; // Synchronized GEO orbital speed
+        geoSatellite.position.x = Math.cos(geoSatAngle) * geoOrbitRadius;
+        geoSatellite.position.z = Math.sin(geoSatAngle) * geoOrbitRadius;
+        geoSatellite.rotation.y = -geoSatAngle;
+
+        // 3. Moon Orbit around Earth
         moonOrbitAngle += 0.0055;
         moonMesh.position.x = Math.cos(moonOrbitAngle) * lunarOrbitRadius;
         moonMesh.position.z = Math.sin(moonOrbitAngle) * lunarOrbitRadius;
         moonMesh.rotation.y += 0.002;
 
-        // 3. Mars revolves along interplanetary path
+        // Satellite LRO around Moon
+        lroSatAngle += 0.016;
+        lroSatellite.position.x = Math.cos(lroSatAngle) * lroOrbitRadius;
+        lroSatellite.position.z = Math.sin(lroSatAngle) * lroOrbitRadius;
+        lroSatellite.rotation.y = -lroSatAngle;
+
+        // 4. Mars Interplanetary Orbit
         marsOrbitAngle += 0.0024;
         marsMesh.position.x = Math.cos(marsOrbitAngle) * marsOrbitRadiusX;
         marsMesh.position.z = Math.sin(marsOrbitAngle) * marsOrbitRadiusZ;
         marsMesh.rotation.y += 0.0028;
 
-        // Subtle starfield parallax
+        // Satellite MRO around Mars
+        mroSatAngle += 0.014;
+        mroSatellite.position.x = Math.cos(mroSatAngle) * mroOrbitRadius;
+        mroSatellite.position.z = Math.sin(mroSatAngle) * mroOrbitRadius;
+        mroSatellite.rotation.y = -mroSatAngle;
+
+        // Satellite LED Beacons Pulsing
+        const pulse = (Math.sin(elapsedTime * 5.0) + 1.0) * 0.5;
+        (leoBeacon.material as THREE.MeshBasicMaterial).opacity = 0.4 + pulse * 0.6;
+        (geoBeacon.material as THREE.MeshBasicMaterial).opacity = 0.4 + pulse * 0.6;
+        (lroBeacon.material as THREE.MeshBasicMaterial).opacity = 0.4 + pulse * 0.6;
+        (mroBeacon.material as THREE.MeshBasicMaterial).opacity = 0.4 + pulse * 0.6;
+
+        // Background Starfield Drift
         starPoints.rotation.y += 0.00015;
       }
 
@@ -695,30 +881,25 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
       window.removeEventListener('mousemove', onPointerMove);
       window.removeEventListener('mouseup', onPointerUp);
 
-      // Dispose Geometries
       earthGeo.dispose();
       cloudGeo.dispose();
       atmosGeo.dispose();
       moonGeo.dispose();
-      lunarOrbitGeo.dispose();
       marsGeo.dispose();
       marsAtmosGeo.dispose();
-      marsOrbitGeo.dispose();
       starGeo.dispose();
 
-      // Dispose Materials & Textures
       earthMat.dispose();
       cloudMat.dispose();
       atmosMat.dispose();
       moonMat.dispose();
-      lunarOrbitMat.dispose();
       marsMat.dispose();
       marsAtmosMat.dispose();
-      marsOrbitMat.dispose();
       starMat.dispose();
 
       earthTex.dispose();
       earthSpec.dispose();
+      earthNight.dispose();
       cloudTex.dispose();
       moonTex.dispose();
       marsTex.dispose();
@@ -732,15 +913,14 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
 
   return (
     <div className="relative w-full min-h-[92vh] flex flex-col justify-between overflow-hidden bg-[#07090E]">
-      {/* 3D WebGL Canvas or Designed Static Fallback */}
+      {/* 3D WebGL Canvas */}
       {webGlAvailable ? (
         <div
           ref={mountRef}
           className="absolute inset-0 w-full h-full cursor-grab z-0"
-          aria-label="Interactive 3D orbit system of Earth, Moon, and Mars"
+          aria-label="Interactive 3D orbit system with Earth, Moon, Mars, and orbital satellites"
         />
       ) : (
-        /* Static Graceful Fallback */
         <div className="absolute inset-0 w-full h-full flex items-center justify-end pr-8 sm:pr-16 lg:pr-28 bg-gradient-to-b from-[#07090E] via-[#0B0F17] to-[#111622] z-0 p-8">
           <div className="relative w-80 h-80 rounded-full border border-cyan-500/20 flex items-center justify-center">
             <div className="w-56 h-56 rounded-full bg-gradient-to-br from-emerald-900/40 via-cyan-900/30 to-blue-950/60 border border-cyan-400/40 shadow-[0_0_50px_rgba(6,182,212,0.15)] flex items-center justify-center">
@@ -759,7 +939,7 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
       {/* Floating Interactive Hover Telemetry Tooltip */}
       {activeTelemetry && (
         <div
-          className="pointer-events-none absolute z-30 transform -translate-x-1/2 -translate-y-full px-3 py-2 rounded-lg bg-[#0E1523]/95 backdrop-blur-md border border-cyan-500/40 shadow-xl text-left transition-all duration-75"
+          className="pointer-events-none absolute z-30 transform -translate-x-1/2 -translate-y-full px-3.5 py-2 rounded-xl bg-[#0E1523]/95 backdrop-blur-md border border-cyan-500/40 shadow-2xl text-left transition-all duration-75"
           style={{ left: activeTelemetry.x, top: activeTelemetry.y }}
         >
           <div className="flex items-center gap-2">
@@ -778,22 +958,21 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
         </div>
       )}
 
-      {/* Top Banner & Planetary Controls */}
+      {/* Top Banner & Simulation Control */}
       <div className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 pt-8 pb-4 flex items-center justify-between pointer-events-none">
         <div className="flex items-center gap-2.5 text-xs font-mono text-cyan-400 tracking-widest uppercase pointer-events-auto">
           <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
           <span className="font-bold text-white tracking-widest">XORA</span>
           <span className="text-slate-600">·</span>
-          <span className="text-slate-400 tracking-wider">Planetary Proving Ground Atlas</span>
+          <span className="text-slate-400 tracking-wider">Active Planetary Orbit Simulation</span>
         </div>
 
-        {/* Orbit Simulation Controls */}
         <div className="text-[11px] font-mono text-slate-300 pointer-events-auto flex items-center gap-3 bg-[#0B0F17]/90 px-3 py-1.5 rounded-full border border-slate-800/80 backdrop-blur-md shadow-sm">
-          <span className="hidden sm:inline text-slate-400">Orbital Trajectories Active</span>
+          <span className="hidden sm:inline text-slate-400">4 Satellites in Orbit</span>
           <button
             onClick={() => setIsRotating(!isRotating)}
-            className="flex items-center gap-1 px-2 py-0.5 rounded text-xs text-cyan-300 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
-            title={isRotating ? 'Pause planetary orbits' : 'Resume planetary orbits'}
+            className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs text-cyan-300 hover:text-white hover:bg-slate-800/60 transition-colors cursor-pointer"
+            title={isRotating ? 'Pause orbital motion' : 'Resume orbital motion'}
           >
             {isRotating ? (
               <>
@@ -815,19 +994,18 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
         <div className="max-w-xl xl:max-w-2xl space-y-6 pointer-events-auto">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-950/60 border border-cyan-800/40 text-xs font-mono text-cyan-300 shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            <span>Quantitative Planetary Terrain Engine</span>
+            <span>Calibrated Terrestrial Proving Grounds</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.05] text-balance uppercase font-sans">
             Explore Beyond Earth.
           </h1>
 
-          <p className="text-base sm:text-xl text-slate-300 leading-relaxed font-sans max-w-2xl font-light">
+          <p className="text-base sm:text-lg text-slate-300 leading-relaxed font-sans max-w-2xl font-light">
             Match Moon and Mars landing regions with calibrated Earth test sites. 
             Evaluate surface roughness, slope CDFs, and physical limitations before flight hardware leaves the ground.
           </p>
 
-          {/* Action Callouts */}
           <div className="flex flex-wrap items-center gap-3.5 pt-3">
             <button
               onClick={() => onExplore()}
@@ -865,14 +1043,12 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
               </span>
               <span className="font-mono text-slate-400 text-[11px]">12 Analog Sites</span>
             </div>
-            <p className="text-xs text-slate-300 line-clamp-1 font-light">
-              Atacama, Haughton, Lanzarote, McMurdo, Svalbard.
+            <p className="text-xs text-slate-400 line-clamp-1 font-light">
+              Atacama, Haughton, Lanzarote, McMurdo, Svalbard
             </p>
             <div className="mt-2 text-[11px] font-mono text-slate-400 flex items-center justify-between">
               <span>Gravity: 9.81 m/s²</span>
-              <span className="text-emerald-300 group-hover:underline flex items-center gap-1">
-                Explore Proving Grounds →
-              </span>
+              <span className="text-emerald-300 group-hover:underline">Explore Sites →</span>
             </div>
           </div>
 
@@ -888,14 +1064,12 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
               </span>
               <span className="font-mono text-slate-400 text-[11px]">Artemis Baselines</span>
             </div>
-            <p className="text-xs text-slate-300 line-clamp-1 font-light">
-              Shackleton Rim, Taurus-Littrow, Tranquillitatis Pit.
+            <p className="text-xs text-slate-400 line-clamp-1 font-light">
+              Shackleton Rim, Taurus-Littrow, Tranquillitatis Pit
             </p>
             <div className="mt-2 text-[11px] font-mono text-slate-400 flex items-center justify-between">
               <span>Gravity: 1.62 m/s²</span>
-              <span className="text-cyan-300 group-hover:underline flex items-center gap-1">
-                Find Lunar Twins →
-              </span>
+              <span className="text-cyan-300 group-hover:underline">Find Lunar Twins →</span>
             </div>
           </div>
 
@@ -911,14 +1085,12 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
               </span>
               <span className="font-mono text-slate-400 text-[11px]">Rover Exploration</span>
             </div>
-            <p className="text-xs text-slate-300 line-clamp-1 font-light">
-              Jezero Crater Delta, Gale Crater, Oxia Planum.
+            <p className="text-xs text-slate-400 line-clamp-1 font-light">
+              Jezero Crater Delta, Gale Crater, Oxia Planum
             </p>
             <div className="mt-2 text-[11px] font-mono text-slate-400 flex items-center justify-between">
               <span>Gravity: 3.71 m/s²</span>
-              <span className="text-amber-300 group-hover:underline flex items-center gap-1">
-                Find Mars Twins →
-              </span>
+              <span className="text-amber-300 group-hover:underline">Find Mars Twins →</span>
             </div>
           </div>
         </div>

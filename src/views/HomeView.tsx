@@ -9,17 +9,7 @@
 
 import React from 'react';
 import { CelestialHero3D } from '../components/CelestialHero3D';
-import { 
-  Compass, 
-  GitCompare, 
-  ShieldAlert, 
-  Layers, 
-  Activity, 
-  ArrowRight, 
-  Check, 
-  X as CloseIcon,
-  Sparkles
-} from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 interface HomeViewProps {
   onNavigate: (route: string, params?: Record<string, string>) => void;
@@ -170,125 +160,6 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
             </div>
           </div>
         </section>
-
-        {/* 3. The Scientific Standard: Why Visual Lookalikes Fail */}
-        <section className="p-8 sm:p-12 rounded-3xl bg-gradient-to-b from-[#0B0F19] to-[#080C14] border border-slate-800/80 space-y-10 shadow-2xl">
-          <div className="max-w-2xl space-y-3">
-            <div className="text-xs font-mono text-cyan-400 uppercase tracking-widest font-semibold flex items-center gap-2">
-              <Layers className="w-4 h-4" />
-              <span>Rigorous Ground Truth</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-              Visual lookalikes deceive. Terrain twins validate.
-            </h2>
-            <p className="text-slate-300 text-sm leading-relaxed font-light">
-              A desert might look like Mars in photos, but if its soil contains cohesive organic clay and its slopes were shaped by running water, running rover wheels there generates false confidence. XORA replaces subjective impressions with measurable topography.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Pitfall Card */}
-            <div className="p-6 rounded-2xl bg-[#0F1422] border border-rose-950/40 space-y-4">
-              <div className="flex items-center gap-2 text-rose-400 font-semibold text-sm">
-                <CloseIcon className="w-4 h-4" />
-                <span>The Visual Lookalike Pitfall</span>
-              </div>
-              <ul className="space-y-3 text-xs text-slate-300 font-light">
-                <li className="flex items-start gap-2.5">
-                  <span className="text-rose-400 font-mono text-sm leading-none">•</span>
-                  <span><strong>RGB Color Bias:</strong> Matching reddish dunes with Mars overlooks completely different grain sizes and cohesive properties.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-rose-400 font-mono text-sm leading-none">•</span>
-                  <span><strong>Hydrological Erosion:</strong> Terrestrial drainage channels follow fluid dynamics that do not apply to crater-saturated regolith.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-rose-400 font-mono text-sm leading-none">•</span>
-                  <span><strong>Biological Cohesion:</strong> Microbial roots and organic crusts bind soil, creating unrealistic traction for rover wheel tests.</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Solution Card */}
-            <div className="p-6 rounded-2xl bg-[#0F1422] border border-cyan-950/40 space-y-4">
-              <div className="flex items-center gap-2 text-cyan-400 font-semibold text-sm">
-                <Check className="w-4 h-4" />
-                <span>The XORA Topographic Standard</span>
-              </div>
-              <ul className="space-y-3 text-xs text-slate-300 font-light">
-                <li className="flex items-start gap-2.5">
-                  <span className="text-cyan-400 font-mono text-sm leading-none">•</span>
-                  <span><strong>Wasserstein Slope Distribution:</strong> Matches full continuous slope gradients, not just misleading single-point averages.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-cyan-400 font-mono text-sm leading-none">•</span>
-                  <span><strong>10m RMS Roughness:</strong> Directly benchmarks sub-kilometer wheel hazards from high-precision orbital laser altimeters.</span>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="text-cyan-400 font-mono text-sm leading-none">•</span>
-                  <span><strong>Petrological Affinity:</strong> Evaluates volcanic basalt, impact breccia, and anhydrous salts matching the targeted planetary crust.</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        {/* 4. The Handicap Principle: Transparent Limitations */}
-        <section className="space-y-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-slate-800/80">
-            <div>
-              <div className="flex items-center gap-2 text-xs font-mono text-amber-400 uppercase tracking-widest mb-1.5">
-                <ShieldAlert className="w-4 h-4" />
-                <span>Physical Constraints</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-sans">
-                The Handicap Ledger
-              </h2>
-            </div>
-            <p className="text-xs sm:text-sm text-slate-400 max-w-md font-light leading-relaxed">
-              No place on Earth reproduces 1/6th gravity or hard vacuum. Scientific honesty requires documenting what Earth cannot simulate.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-sans">
-            <div className="p-5 rounded-2xl bg-[#0B101D] border border-slate-800 space-y-2">
-              <div className="font-mono text-cyan-400 text-[11px] uppercase tracking-wider font-semibold">
-                Surface Gravity Offset
-              </div>
-              <div className="text-base font-bold text-white font-mono">
-                1.62 / 3.71 vs 9.81 m/s²
-              </div>
-              <p className="text-slate-400 font-light text-[11px] leading-relaxed">
-                Earth tests validate path slope geometry and steering kinematics, but wheel torque and sinkage require weight-offloading rigs.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#0B101D] border border-slate-800 space-y-2">
-              <div className="font-mono text-cyan-400 text-[11px] uppercase tracking-wider font-semibold">
-                Atmosphere &amp; Vacuum
-              </div>
-              <div className="text-base font-bold text-white font-mono">
-                10⁻¹⁰ Pa vs 101.3 kPa
-              </div>
-              <p className="text-slate-400 font-light text-[11px] leading-relaxed">
-                Earth tests validate LIDAR line-of-sight and optical feature tracking, but lack lunar electrostatic regolith levitation.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#0B101D] border border-slate-800 space-y-2">
-              <div className="font-mono text-cyan-400 text-[11px] uppercase tracking-wider font-semibold">
-                Thermal &amp; Radiation Flux
-              </div>
-              <div className="text-base font-bold text-white font-mono">
-                -180°C to +120°C Diurnal
-              </div>
-              <p className="text-slate-400 font-light text-[11px] leading-relaxed">
-                Mechanical traverse protocols remain valid; thermal cycling and radiation shielding require cryogenic vacuum chambers.
-              </p>
-            </div>
-          </div>
-        </section>
-
       </div>
     </div>
   );
