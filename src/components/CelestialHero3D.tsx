@@ -831,7 +831,7 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
           <div className="flex flex-wrap items-center gap-3.5 pt-3">
             <button
               onClick={() => onExplore()}
-              className="px-6 py-3.5 text-sm font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-lg transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(34,211,238,0.3)] cursor-pointer"
+              className="px-6 py-3.5 text-sm font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-full transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(34,211,238,0.3)] cursor-pointer"
             >
               <Compass className="w-4 h-4" />
               <span>Launch Terrain Explorer</span>
@@ -840,10 +840,10 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
             {onCompare && (
               <button
                 onClick={onCompare}
-                className="px-6 py-3.5 text-sm font-semibold text-slate-200 bg-[#0E121C]/90 hover:bg-[#161B26] hover:text-white border border-[#1F2737] rounded-lg transition-colors flex items-center gap-2 cursor-pointer backdrop-blur-sm"
+                className="px-6 py-3.5 text-sm font-semibold text-slate-200 bg-[#0E121C]/90 hover:bg-[#161B26] hover:text-white border border-[#1F2737] rounded-full transition-colors flex items-center gap-2 cursor-pointer backdrop-blur-sm"
               >
                 <GitCompare className="w-4 h-4 text-cyan-400" />
-                <span>Compare Worlds</span>
+                <span>Split-World Scrubber</span>
               </button>
             )}
           </div>

@@ -1,12 +1,25 @@
 /**
  * XORA Home View
- * Cinematic 3D Celestial Hero scrolling into a modern editorial narrative:
- * The Scientific Problem -> Core Principles -> The Handicap Ledger -> Interactive Proving Grounds.
+ * High-End Aerospace & Planetary Science Proving Ground Presentation:
+ * 1. 3D Celestial Hero (Earth, Moon, Mars in real orbital mechanics)
+ * 2. Planetary Twin Spotlights (Live Terrain Pair Previews: Shackleton, Jezero, Marius)
+ * 3. The Fidelity Standard (Why visual lookalikes fail vs mathematical terrain twins)
+ * 4. The Handicap Principle (Operational boundaries of Earth-based rehearsals)
  */
 
 import React from 'react';
 import { CelestialHero3D } from '../components/CelestialHero3D';
-import { Compass, ShieldAlert, ArrowRight, CheckCircle2, Layers, Cpu, Database, Eye } from 'lucide-react';
+import { 
+  Compass, 
+  GitCompare, 
+  ShieldAlert, 
+  Layers, 
+  Activity, 
+  ArrowRight, 
+  Check, 
+  X as CloseIcon,
+  Sparkles
+} from 'lucide-react';
 
 interface HomeViewProps {
   onNavigate: (route: string, params?: Record<string, string>) => void;
@@ -15,208 +28,268 @@ interface HomeViewProps {
 export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
   return (
     <div className="min-h-screen bg-[#07090E] text-[#F8FAFC]">
-      {/* 3D Celestial Hero with Orbit Mechanics */}
+      {/* 1. 3D Celestial Hero with Interactive Orbit Physics */}
       <CelestialHero3D
         onExplore={(body) => onNavigate('explore', body ? { body } : undefined)}
         onCompare={() => onNavigate('compare')}
       />
 
-      {/* Editorial Science & Mission Narrative */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-20 space-y-20">
-        {/* Brand Architecture & Mission Scope */}
-        <div className="p-6 sm:p-8 rounded-2xl bg-[#0B0F17] border border-slate-800/80 shadow-2xl space-y-6">
-          <div className="flex items-center gap-2 text-xs font-mono text-cyan-400 uppercase tracking-widest">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-            <span>Mission Framework &amp; Core Architecture</span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-            <div className="md:col-span-5 space-y-3">
-              <h2 className="text-3xl sm:text-4xl font-black tracking-widest text-white uppercase font-sans">
-                XORA
+      {/* Main Editorial Content Stream */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-24 space-y-28">
+        
+        {/* 2. Planetary Twin Spotlights: 3 Calibrated Proving Ground Pairs */}
+        <section className="space-y-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-slate-800/80">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-mono text-cyan-400 uppercase tracking-widest mb-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                <span>Calibrated Planetary Pairs</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-sans">
+                Signature Proving Ground Baselines
               </h2>
-              <div className="text-xs font-mono text-cyan-300 tracking-wider uppercase font-semibold">
-                Earth · Moon · Mars
+            </div>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-md font-light leading-relaxed">
+              Real mission landing candidates paired with verified Earth analogs based on NASA LOLA, MOLA, and Copernicus topography.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {/* Pair 1: Shackleton Rim (Moon) -> Haughton Crater */}
+            <div 
+              onClick={() => onNavigate('compare', { ref: 'lunar-shackleton-rim', earth: 'haughton-crater' })}
+              className="p-5 rounded-2xl bg-[#0B101D]/80 border border-slate-800/80 hover:border-cyan-500/50 hover:bg-[#0E1526] transition-all cursor-pointer group flex flex-col justify-between space-y-5 shadow-lg"
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="px-2.5 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-800/50 font-mono text-[11px] text-cyan-300">
+                    Moon · Artemis Base
+                  </span>
+                  <span className="font-mono text-slate-400 text-[11px]">86.4% Match</span>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white group-hover:text-cyan-300 transition-colors">
+                    Shackleton Rim ↔ Haughton
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1 font-light leading-relaxed">
+                    Polar impact rim with continuous illumination ridges paired with Arctic impact breccia and permafrost polygons.
+                  </p>
+                </div>
               </div>
-              <p className="text-slate-300 text-sm leading-relaxed font-light">
-                An open planetary science platform quantifying terrestrial terrain twins for lunar base sites and Martian landing zones using calibrated orbital altimetry.
+
+              <div className="pt-3 border-t border-slate-800/80 space-y-2 text-[11px] font-mono text-slate-400">
+                <div className="flex justify-between">
+                  <span>Slope Match:</span>
+                  <span className="text-slate-200">14.8° vs 11.2°</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Surface Roughness:</span>
+                  <span className="text-slate-200">0.95m vs 0.88m RMS</span>
+                </div>
+                <div className="pt-2 text-cyan-400 group-hover:underline flex items-center justify-between font-semibold">
+                  <span>Launch Visual Scrubber</span>
+                  <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </div>
+
+            {/* Pair 2: Jezero Crater (Mars) -> Atacama Yungay */}
+            <div 
+              onClick={() => onNavigate('compare', { ref: 'mars-jezero-crater', earth: 'atacama-yungay' })}
+              className="p-5 rounded-2xl bg-[#0B101D]/80 border border-slate-800/80 hover:border-amber-500/50 hover:bg-[#0E1526] transition-all cursor-pointer group flex flex-col justify-between space-y-5 shadow-lg"
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-950/80 border border-amber-800/50 font-mono text-[11px] text-amber-300">
+                    Mars · Perseverance
+                  </span>
+                  <span className="font-mono text-slate-400 text-[11px]">88.1% Match</span>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white group-hover:text-amber-300 transition-colors">
+                    Jezero Delta ↔ Atacama
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1 font-light leading-relaxed">
+                    River delta fan deposits and clay scarps matched against Earth&apos;s hyper-arid desiccation basin and perchlorate soils.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-800/80 space-y-2 text-[11px] font-mono text-slate-400">
+                <div className="flex justify-between">
+                  <span>Slope Match:</span>
+                  <span className="text-slate-200">6.2° vs 5.8°</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Surface Roughness:</span>
+                  <span className="text-slate-200">0.42m vs 0.38m RMS</span>
+                </div>
+                <div className="pt-2 text-amber-400 group-hover:underline flex items-center justify-between font-semibold">
+                  <span>Launch Visual Scrubber</span>
+                  <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </div>
+
+            {/* Pair 3: Tranquillitatis Pit (Moon) -> Lanzarote */}
+            <div 
+              onClick={() => onNavigate('compare', { ref: 'lunar-tranquillitatis-pit', earth: 'lanzarote-lava-tubes' })}
+              className="p-5 rounded-2xl bg-[#0B101D]/80 border border-slate-800/80 hover:border-emerald-500/50 hover:bg-[#0E1526] transition-all cursor-pointer group flex flex-col justify-between space-y-5 shadow-lg"
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-800/50 font-mono text-[11px] text-emerald-300">
+                    Moon · Lava Tube Skylight
+                  </span>
+                  <span className="font-mono text-slate-400 text-[11px]">83.5% Match</span>
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white group-hover:text-emerald-300 transition-colors">
+                    Mare Pit ↔ Lanzarote
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1 font-light leading-relaxed">
+                    Subsurface basalt cavern collapse matched against volcanic lava tubes tested by ESA PANGAEA astronaut campaigns.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-slate-800/80 space-y-2 text-[11px] font-mono text-slate-400">
+                <div className="flex justify-between">
+                  <span>Slope Match:</span>
+                  <span className="text-slate-200">22.4° vs 19.8°</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Surface Roughness:</span>
+                  <span className="text-slate-200">1.25m vs 1.18m RMS</span>
+                </div>
+                <div className="pt-2 text-emerald-400 group-hover:underline flex items-center justify-between font-semibold">
+                  <span>Launch Visual Scrubber</span>
+                  <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 3. The Scientific Standard: Why Visual Lookalikes Fail */}
+        <section className="p-8 sm:p-12 rounded-3xl bg-gradient-to-b from-[#0B0F19] to-[#080C14] border border-slate-800/80 space-y-10 shadow-2xl">
+          <div className="max-w-2xl space-y-3">
+            <div className="text-xs font-mono text-cyan-400 uppercase tracking-widest font-semibold flex items-center gap-2">
+              <Layers className="w-4 h-4" />
+              <span>Rigorous Ground Truth</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+              Visual lookalikes deceive. Terrain twins validate.
+            </h2>
+            <p className="text-slate-300 text-sm leading-relaxed font-light">
+              A desert might look like Mars in photos, but if its soil contains cohesive organic clay and its slopes were shaped by running water, running rover wheels there generates false confidence. XORA replaces subjective impressions with measurable topography.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Pitfall Card */}
+            <div className="p-6 rounded-2xl bg-[#0F1422] border border-rose-950/40 space-y-4">
+              <div className="flex items-center gap-2 text-rose-400 font-semibold text-sm">
+                <CloseIcon className="w-4 h-4" />
+                <span>The Visual Lookalike Pitfall</span>
+              </div>
+              <ul className="space-y-3 text-xs text-slate-300 font-light">
+                <li className="flex items-start gap-2.5">
+                  <span className="text-rose-400 font-mono text-sm leading-none">•</span>
+                  <span><strong>RGB Color Bias:</strong> Matching reddish dunes with Mars overlooks completely different grain sizes and cohesive properties.</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-rose-400 font-mono text-sm leading-none">•</span>
+                  <span><strong>Hydrological Erosion:</strong> Terrestrial drainage channels follow fluid dynamics that do not apply to crater-saturated regolith.</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-rose-400 font-mono text-sm leading-none">•</span>
+                  <span><strong>Biological Cohesion:</strong> Microbial roots and organic crusts bind soil, creating unrealistic traction for rover wheel tests.</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Solution Card */}
+            <div className="p-6 rounded-2xl bg-[#0F1422] border border-cyan-950/40 space-y-4">
+              <div className="flex items-center gap-2 text-cyan-400 font-semibold text-sm">
+                <Check className="w-4 h-4" />
+                <span>The XORA Topographic Standard</span>
+              </div>
+              <ul className="space-y-3 text-xs text-slate-300 font-light">
+                <li className="flex items-start gap-2.5">
+                  <span className="text-cyan-400 font-mono text-sm leading-none">•</span>
+                  <span><strong>Wasserstein Slope Distribution:</strong> Matches full continuous slope gradients, not just misleading single-point averages.</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-cyan-400 font-mono text-sm leading-none">•</span>
+                  <span><strong>10m RMS Roughness:</strong> Directly benchmarks sub-kilometer wheel hazards from high-precision orbital laser altimeters.</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="text-cyan-400 font-mono text-sm leading-none">•</span>
+                  <span><strong>Petrological Affinity:</strong> Evaluates volcanic basalt, impact breccia, and anhydrous salts matching the targeted planetary crust.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* 4. The Handicap Principle: Transparent Limitations */}
+        <section className="space-y-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-slate-800/80">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-mono text-amber-400 uppercase tracking-widest mb-1.5">
+                <ShieldAlert className="w-4 h-4" />
+                <span>Physical Constraints</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-sans">
+                The Handicap Ledger
+              </h2>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-md font-light leading-relaxed">
+              No place on Earth reproduces 1/6th gravity or hard vacuum. Scientific honesty requires documenting what Earth cannot simulate.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-sans">
+            <div className="p-5 rounded-2xl bg-[#0B101D] border border-slate-800 space-y-2">
+              <div className="font-mono text-cyan-400 text-[11px] uppercase tracking-wider font-semibold">
+                Surface Gravity Offset
+              </div>
+              <div className="text-base font-bold text-white font-mono">
+                1.62 / 3.71 vs 9.81 m/s²
+              </div>
+              <p className="text-slate-400 font-light text-[11px] leading-relaxed">
+                Earth tests validate path slope geometry and steering kinematics, but wheel torque and sinkage require weight-offloading rigs.
               </p>
-              <div className="pt-2 text-xs text-slate-400 font-sans">
-                Bridging the gap between laboratory bench testing and deep-space planetary surface operations.
-              </div>
             </div>
 
-            <div className="md:col-span-7 grid grid-cols-2 gap-3 text-xs font-mono">
-              <div className="p-4 rounded-xl bg-[#111622] border border-slate-800/90 space-y-1.5 shadow-sm">
-                <span className="text-cyan-400 font-bold text-base">X</span>
-                <div className="text-white font-semibold">eXploration</div>
-                <div className="text-slate-400 text-[11px] font-sans">Mission-critical test design for rovers &amp; landers</div>
+            <div className="p-5 rounded-2xl bg-[#0B101D] border border-slate-800 space-y-2">
+              <div className="font-mono text-cyan-400 text-[11px] uppercase tracking-wider font-semibold">
+                Atmosphere &amp; Vacuum
               </div>
+              <div className="text-base font-bold text-white font-mono">
+                10⁻¹⁰ Pa vs 101.3 kPa
+              </div>
+              <p className="text-slate-400 font-light text-[11px] leading-relaxed">
+                Earth tests validate LIDAR line-of-sight and optical feature tracking, but lack lunar electrostatic regolith levitation.
+              </p>
+            </div>
 
-              <div className="p-4 rounded-xl bg-[#111622] border border-slate-800/90 space-y-1.5 shadow-sm">
-                <span className="text-cyan-400 font-bold text-base">O</span>
-                <div className="text-white font-semibold">Orbital Altimetry</div>
-                <div className="text-slate-400 text-[11px] font-sans">NASA LOLA, MGS MOLA &amp; ESA HRSC datasets</div>
+            <div className="p-5 rounded-2xl bg-[#0B101D] border border-slate-800 space-y-2">
+              <div className="font-mono text-cyan-400 text-[11px] uppercase tracking-wider font-semibold">
+                Thermal &amp; Radiation Flux
               </div>
-
-              <div className="p-4 rounded-xl bg-[#111622] border border-slate-800/90 space-y-1.5 shadow-sm">
-                <span className="text-cyan-400 font-bold text-base">R</span>
-                <div className="text-white font-semibold">Rigorous Analysis</div>
-                <div className="text-slate-400 text-[11px] font-sans">Wasserstein slope CDF &amp; RMS roughness math</div>
+              <div className="text-base font-bold text-white font-mono">
+                -180°C to +120°C Diurnal
               </div>
-
-              <div className="p-4 rounded-xl bg-[#111622] border border-slate-800/90 space-y-1.5 shadow-sm">
-                <span className="text-cyan-400 font-bold text-base">A</span>
-                <div className="text-white font-semibold">Analogs Catalog</div>
-                <div className="text-slate-400 text-[11px] font-sans">12 georeferenced high-fidelity proving grounds</div>
-              </div>
+              <p className="text-slate-400 font-light text-[11px] leading-relaxed">
+                Mechanical traverse protocols remain valid; thermal cycling and radiation shielding require cryogenic vacuum chambers.
+              </p>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Chapter 01: The Problem with Lookalikes */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-          <div className="md:col-span-4 font-mono text-xs text-cyan-400 uppercase tracking-widest font-semibold flex items-center gap-2">
-            <Eye className="w-4 h-4 text-cyan-400" />
-            <span>01. The Problem</span>
-          </div>
-          <div className="md:col-span-8 space-y-4">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white leading-snug">
-              Space missions demand terrain twins, not visual lookalikes.
-            </h2>
-            <p className="text-slate-300 leading-relaxed text-sm sm:text-base font-light">
-              A red desert might look like Mars in a photo, but if its slopes were carved by rain and its soil contains sticky biological clay, testing rover wheels there gives engineers false confidence. Real space hardware requires terrain that matches measurable slope distributions, surface roughness, and bedrock geology.
-            </p>
-          </div>
-        </div>
-
-        {/* Chapter 02: Three Principles */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start border-t border-[#1F2737] pt-16">
-          <div className="md:col-span-4 font-mono text-xs text-cyan-400 uppercase tracking-widest font-semibold flex items-center gap-2">
-            <Cpu className="w-4 h-4 text-cyan-400" />
-            <span>02. Scientific Principles</span>
-          </div>
-          <div className="md:col-span-8 space-y-6">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-              Measurable metrics. Honest limitations. Mission-first.
-            </h2>
-
-            <div className="space-y-4 text-sm text-slate-300">
-              <div className="p-4 rounded-xl bg-[#0F121C] border border-[#1F2737] space-y-1.5">
-                <div className="font-semibold text-white flex items-center gap-2">
-                  <span className="text-cyan-400 font-mono">1.</span>
-                  <span>Measurable Topographic Alignment</span>
-                </div>
-                <p className="text-slate-400 leading-relaxed text-xs font-light">
-                  Similarity scores are computed from elevation relief, slope distributions, 10m RMS roughness, and boulder hazard densities. Never from cosmetic RGB appearance.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-[#0F121C] border border-[#1F2737] space-y-1.5">
-                <div className="font-semibold text-white flex items-center gap-2">
-                  <span className="text-cyan-400 font-mono">2.</span>
-                  <span>The Handicap Ledger</span>
-                </div>
-                <p className="text-slate-400 leading-relaxed text-xs font-light">
-                  Earth has 9.81 m/s² gravity, an atmosphere, active biology, and water. Every comparison lists exactly what Earth cannot reproduce and details which tests remain valid.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-[#0F121C] border border-[#1F2737] space-y-1.5">
-                <div className="font-semibold text-white flex items-center gap-2">
-                  <span className="text-cyan-400 font-mono">3.</span>
-                  <span>Mission-Specific Weightings</span>
-                </div>
-                <p className="text-slate-400 leading-relaxed text-xs font-light">
-                  Rover traverse, landing hazard testing, lava-tube exploration, and polar ice drilling each prioritize different physical terrain metrics.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Chapter 03: The Handicap Ledger Preview */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start border-t border-[#1F2737] pt-16">
-          <div className="md:col-span-4 font-mono text-xs text-amber-400 uppercase tracking-widest font-semibold flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-amber-400" />
-            <span>03. The Handicap Ledger</span>
-          </div>
-          <div className="md:col-span-8 space-y-5">
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-              Transparent physical boundaries separate science from fiction.
-            </h2>
-            <p className="text-slate-300 leading-relaxed text-sm font-light">
-              No Earth location can replicate lunar vacuum or Martian gravity. The Handicap Ledger makes these boundaries transparent on every evaluation:
-            </p>
-
-            <div className="overflow-x-auto border border-[#1F2737] rounded-xl bg-[#0E121C]">
-              <table className="w-full text-xs text-left">
-                <thead className="bg-[#121624] text-slate-400 font-mono border-b border-[#1F2737]">
-                  <tr>
-                    <th className="p-3.5">Environment Factor</th>
-                    <th className="p-3.5">Earth Baseline</th>
-                    <th className="p-3.5">Planetary Target</th>
-                    <th className="p-3.5">Valid Testing Scope</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#1F2737] text-slate-300">
-                  <tr>
-                    <td className="p-3.5 font-medium text-white">Surface Gravity</td>
-                    <td className="p-3.5 font-mono">9.81 m/s²</td>
-                    <td className="p-3.5 font-mono text-cyan-400">1.62 m/s² (Moon) / 3.71 m/s² (Mars)</td>
-                    <td className="p-3.5 text-slate-400">Geometric pathing, hazard avoidance FOV, slip angles.</td>
-                  </tr>
-                  <tr>
-                    <td className="p-3.5 font-medium text-white">Atmosphere &amp; Vacuum</td>
-                    <td className="p-3.5 font-mono">101.3 kPa</td>
-                    <td className="p-3.5 font-mono text-cyan-400">10⁻¹⁰ Pa (Vacuum) / 0.6 kPa (CO₂)</td>
-                    <td className="p-3.5 text-slate-400">LIDAR ranging, optical SLAM, rock coring mechanical drill.</td>
-                  </tr>
-                  <tr>
-                    <td className="p-3.5 font-medium text-white">Ionizing Radiation</td>
-                    <td className="p-3.5 font-mono">2.4 mSv/yr</td>
-                    <td className="p-3.5 font-mono text-cyan-400">250 to 380 mSv/yr</td>
-                    <td className="p-3.5 text-slate-400">Structural mobility, sample caching procedures, autonomy.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        {/* Chapter 04: Interactive Call to Exploration */}
-        <div className="p-8 sm:p-12 rounded-2xl bg-gradient-to-br from-[#0E121C] to-[#141C2B] border border-cyan-500/30 text-center space-y-6 shadow-2xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-950/60 border border-cyan-800/60 text-xs font-mono text-cyan-300">
-            <CheckCircle2 className="w-3.5 h-3.5 text-cyan-400" />
-            <span>12 Georeferenced Proving Grounds · NASA &amp; ESA Remote Baselines</span>
-          </div>
-
-          <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white max-w-xl mx-auto uppercase">
-            Start Your Analysis
-          </h2>
-
-          <p className="text-slate-300 text-sm sm:text-base max-w-lg mx-auto font-light">
-            Compare orbital radar transects, explore global geographic coordinates, and simulate mission hardware tolerances against verified planetary topography.
-          </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-            <button
-              onClick={() => onNavigate('explore')}
-              className="px-6 py-3.5 text-sm font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-lg transition-colors flex items-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(34,211,238,0.25)]"
-            >
-              <Compass className="w-4 h-4" />
-              <span>Launch Terrain Twin Explorer</span>
-            </button>
-            <button
-              onClick={() => onNavigate('compare')}
-              className="px-6 py-3.5 text-sm font-medium text-slate-200 bg-[#121624] hover:bg-[#1A2033] border border-[#1F2737] rounded-lg transition-colors flex items-center gap-2 cursor-pointer"
-            >
-              <span>Split-World Scrubber</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </section>
+      </div>
     </div>
   );
 };
