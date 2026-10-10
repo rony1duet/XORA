@@ -779,12 +779,6 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = () => {
     // ANIMATION & ORBIT MECHANICS LOOP
     // -------------------------------------------------------------
     let animId: number;
-    let moonOrbitAngle = 0.8;
-    let marsOrbitAngle = 3.6;
-    let leoSatAngle = 1.2;
-    let geoSatAngle = 4.5;
-    let lroSatAngle = 0.5;
-    let mroSatAngle = 2.1;
 
     const clock = new THREE.Clock();
 
@@ -800,45 +794,44 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = () => {
       }
 
       if (isRotatingRef.current) {
-        // 1. Earth Rotation & Clouds
-        earthMesh.rotation.y += 0.0022;
-        cloudMesh.rotation.y += 0.0031;
+        // 1. Earth Rotation & Clouds (continuous)
+        earthMesh.rotation.y = elapsedTime * 0.14;
+        cloudMesh.rotation.y = elapsedTime * 0.19;
 
-        // 2. Satellites Revolutions around Earth
-        leoSatAngle += 0.018; // Fast LEO orbital speed
-        leoSatellite.position.x = Math.cos(leoSatAngle) * leoOrbitRadius;
-        leoSatellite.position.z = Math.sin(leoSatAngle) * leoOrbitRadius;
-        leoSatellite.rotation.y = -leoSatAngle;
+        // 2. Satellites Revolutions around Earth (continuous 60fps)
+        const leoAngle = 1.2 + elapsedTime * 0.95;
+        leoSatellite.position.x = Math.cos(leoAngle) * leoOrbitRadius;
+        leoSatellite.position.z = Math.sin(leoAngle) * leoOrbitRadius;
+        leoSatellite.rotation.y = -leoAngle;
 
-        geoSatAngle += 0.007; // Synchronized GEO orbital speed
-        geoSatellite.position.x = Math.cos(geoSatAngle) * geoOrbitRadius;
-        geoSatellite.position.z = Math.sin(geoSatAngle) * geoOrbitRadius;
-        geoSatellite.rotation.y = -geoSatAngle;
+        const geoAngle = 4.5 + elapsedTime * 0.38;
+        geoSatellite.position.x = Math.cos(geoAngle) * geoOrbitRadius;
+        geoSatellite.position.z = Math.sin(geoAngle) * geoOrbitRadius;
+        geoSatellite.rotation.y = -geoAngle;
 
         // 3. Moon Orbit around Earth
-        moonOrbitAngle += 0.0055;
-        moonMesh.position.x = Math.cos(moonOrbitAngle) * lunarOrbitRadius;
-        moonMesh.position.z = Math.sin(moonOrbitAngle) * lunarOrbitRadius;
-        moonMesh.rotation.y += 0.002;
+        const moonAngle = 0.8 + elapsedTime * 0.25;
+        moonMesh.position.x = Math.cos(moonAngle) * lunarOrbitRadius;
+        moonMesh.position.z = Math.sin(moonAngle) * lunarOrbitRadius;
+        moonMesh.rotation.y = elapsedTime * 0.09;
 
         // Satellite LRO around Moon
-        lroSatAngle += 0.016;
-        lroSatellite.position.x = Math.cos(lroSatAngle) * lroOrbitRadius;
-        lroSatellite.position.z = Math.sin(lroSatAngle) * lroOrbitRadius;
-        lroSatellite.rotation.y = -lroSatAngle;
+        const lroAngle = 0.5 + elapsedTime * 0.85;
+        lroSatellite.position.x = Math.cos(lroAngle) * lroOrbitRadius;
+        lroSatellite.position.z = Math.sin(lroAngle) * lroOrbitRadius;
+        lroSatellite.rotation.y = -lroAngle;
 
         // 4. Mars Interplanetary Orbit
-        marsOrbitAngle += 0.0024;
-        marsMesh.position.x = Math.cos(marsOrbitAngle) * marsOrbitRadiusX;
-        marsMesh.position.z = Math.sin(marsOrbitAngle) * marsOrbitRadiusZ;
-        marsMesh.rotation.y += 0.0028;
+        const marsAngle = 3.6 + elapsedTime * 0.12;
+        marsMesh.position.x = Math.cos(marsAngle) * marsOrbitRadiusX;
+        marsMesh.position.z = Math.sin(marsAngle) * marsOrbitRadiusZ;
+        marsMesh.rotation.y = elapsedTime * 0.14;
 
         // Satellite MRO around Mars
-        mroSatAngle += 0.014;
-        mroSatellite.position.x = Math.cos(mroSatAngle) * mroOrbitRadius;
-        mroSatellite.position.z = Math.sin(mroSatAngle) * mroOrbitRadius;
-        mroSatellite.rotation.y = -mroSatAngle;
-
+        const mroAngle = 2.1 + elapsedTime * 0.78;
+        mroSatellite.position.x = Math.cos(mroAngle) * mroOrbitRadius;
+        mroSatellite.position.z = Math.sin(mroAngle) * mroOrbitRadius;
+        mroSatellite.rotation.y = -mroAngle;
         // Satellite LED Beacons Pulsing
         const pulse = (Math.sin(elapsedTime * 5.0) + 1.0) * 0.5;
         (leoBeacon.material as THREE.MeshBasicMaterial).opacity = 0.4 + pulse * 0.6;

@@ -4,13 +4,19 @@ import fs from 'fs';
 import ffmpeg from '@ffmpeg-installer/ffmpeg';
 import { execSync } from 'child_process';
 
-async function record1080p60fpsMP4() {
+async function recordComprehensive1080p60fps() {
   const videoDir = path.resolve('./videos');
   if (!fs.existsSync(videoDir)) {
     fs.mkdirSync(videoDir, { recursive: true });
   }
 
-  console.log('Launching 1080p browser session (1920x1080)...');
+  // Clear previous videos
+  const existingFiles = fs.readdirSync(videoDir);
+  for (const f of existingFiles) {
+    fs.unlinkSync(path.join(videoDir, f));
+  }
+
+  console.log('Launching 1080p browser session with hardware WebGL flags...');
   const browser = await chromium.launch({
     headless: true,
     args: [
@@ -18,6 +24,10 @@ async function record1080p60fpsMP4() {
       '--enable-webgl2',
       '--ignore-gpu-blocklist',
       '--use-gl=angle',
+      '--use-angle=d3d11',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-renderer-backgrounding',
       '--window-size=1920,1080'
     ]
   });
@@ -65,10 +75,18 @@ async function record1080p60fpsMP4() {
   };
 
   console.log('=====================================================');
-  console.log('[0:00 - 0:25] SCENE 1: 3D Celestial Hero & Baselines');
+  console.log('[0:00 - 0:25] SCENE 1: 3D Celestial Hero & Controls');
   console.log('=====================================================');
   await page.goto('http://127.0.0.1:3000', { waitUntil: 'networkidle' });
-  await page.waitForTimeout(6000); // 3D planetary orbits & satellites
+  await page.waitForTimeout(5000); // 3D planetary orbits & satellites
+
+  // Test Simulation Pause & Resume Controls
+  const pauseBtn = page.locator('button[title*="Pause"]').first();
+  if (await pauseBtn.isVisible()) {
+    await safeClick(pauseBtn, 1500);
+    const resumeBtn = page.locator('button[title*="Resume"]').first();
+    await safeClick(resumeBtn, 1500);
+  }
 
   // Interactive 3D Orbit Rotations
   const canvas = page.locator('canvas').first();
@@ -78,10 +96,10 @@ async function record1080p60fpsMP4() {
     const cy = cBox.y + cBox.height * 0.48;
     // Rotate right
     await smoothDrag(cx, cy, cx - 350, cy + 40, 40, 20);
-    await page.waitForTimeout(2500);
+    await page.waitForTimeout(2000);
     // Rotate left and tilt
     await smoothDrag(cx - 200, cy, cx + 250, cy - 50, 40, 20);
-    await page.waitForTimeout(2500);
+    await page.waitForTimeout(2000);
   }
 
   // Smooth scroll down to Signature Proving Ground Baselines
@@ -99,7 +117,7 @@ async function record1080p60fpsMP4() {
   await page.waitForTimeout(1500);
 
   console.log('=====================================================');
-  console.log('[0:25 - 0:52] SCENE 2: Explore Atlas & Global Candidates');
+  console.log('[0:25 - 0:52] SCENE 2: Explore Atlas & Deep Site Dossier');
   console.log('=====================================================');
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
   await page.waitForTimeout(1200);
@@ -116,14 +134,21 @@ async function record1080p60fpsMP4() {
   await safeClick(marsBodyBtn, 2500);
 
   // Scroll down to examine candidate cards
-  await smoothScroll(400, 2500);
+  await smoothScroll(450, 2500);
 
-  // Click on a candidate card
-  const siteCard = page.locator('div:has-text("Atacama")').first();
-  await safeClick(siteCard, 3500);
+  // Click on a candidate card to open Site Profile View
+  const profileLink = page.locator('button:has-text("View Site Profile"), div:has-text("Atacama") button:has-text("Profile")').first();
+  if (await profileLink.isVisible()) {
+    await safeClick(profileLink, 3500);
+    // Scroll through the detailed Site Dossier
+    await smoothScroll(600, 3000);
+    // Return to Explore
+    const backBtn = page.locator('button:has-text("Back to Explorer"), button:has-text("Back to Atlas")').first();
+    await safeClick(backBtn, 2000);
+  }
 
   console.log('=====================================================');
-  console.log('[0:52 - 1:24] SCENE 3: Dual-World Comparator & 1:1 Scrubber');
+  console.log('[0:52 - 1:24] SCENE 3: Dual-World Comparator & Scrubber');
   console.log('=====================================================');
   const compareNav = page.locator('button:has-text("Compare")');
   await safeClick(compareNav, 3000);
@@ -149,12 +174,26 @@ async function record1080p60fpsMP4() {
     await page.waitForTimeout(1500);
   }
 
+  // Toggle between Imagery and Elevation Profile view modes
+  const elevProfileToggle = page.locator('button:has-text("Elevation Profile")').first();
+  if (await elevProfileToggle.isVisible()) {
+    await safeClick(elevProfileToggle, 2500);
+    const imageryToggle = page.locator('button:has-text("Imagery")').first();
+    await safeClick(imageryToggle, 1800);
+  }
+
   // 2. Shackleton Rim <-> Haughton Preset
   const shackletonPreset = page.locator('button:has-text("Shackleton Rim")');
   await safeClick(shackletonPreset, 3000);
 
   // Scroll down to Topographic Fingerprint & Handicap Ledger
   await smoothScroll(550, 3500);
+
+  // Expand Handicap Ledger item
+  const ledgerItem = page.locator('div:has-text("The Handicap Ledger")').locator('div[class*="cursor-pointer"]').nth(1);
+  if (await ledgerItem.isVisible()) {
+    await safeClick(ledgerItem, 2500);
+  }
 
   console.log('=====================================================');
   console.log('[1:24 - 1:52] SCENE 4: Rankings Leaderboard & Playground');
@@ -225,7 +264,7 @@ async function record1080p60fpsMP4() {
     const rawPath = await video.path();
     const finalMp4Path = path.join(videoDir, 'xora_prototype_1080p_60fps.mp4');
 
-    console.log('Converting to 1920x1080 60fps MP4 (H.264 high quality)...');
+    console.log('Converting to 1920x1080 60fps MP4 (H.264 visually lossless)...');
     const ffmpegCmd = `"${ffmpeg.path}" -y -i "${rawPath}" -r 60 -c:v libx264 -preset fast -crf 18 -pix_fmt yuv420p "${finalMp4Path}"`;
     execSync(ffmpegCmd, { stdio: 'inherit' });
 
@@ -236,12 +275,12 @@ async function record1080p60fpsMP4() {
       } catch (_) {}
     }
 
-    console.log('SUCCESS! Video recorded and saved to:');
+    console.log('SUCCESS! Master 1080p 60fps MP4 Video recorded and saved to:');
     console.log(finalMp4Path);
   }
 }
 
-record1080p60fpsMP4().catch((err) => {
+recordComprehensive1080p60fps().catch((err) => {
   console.error('Recording error:', err);
   process.exit(1);
 });
