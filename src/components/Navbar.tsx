@@ -1,15 +1,14 @@
 /**
  * XORA: EARTH · MOON · MARS
- * Premium Human-Designed Navigation Bar
+ * Clean Minimal Navigation Bar
  * Features:
- * - Left: Wordmark with glowing live status anchor
- * - Center: Floating glass capsule navigation (Explore, Compare, Rankings) with luminous active state
- * - Right: Direct 'Launch Explorer' action button & responsive mobile trigger
+ * - Left: Brand wordmark with live status anchor
+ * - Right: Floating glass capsule navigation (Explore Atlas, Compare, Rankings) and mobile trigger
  * - Mobile: Smooth backdrop-blur drawer with clean action cards
  */
 
 import React, { useState } from 'react';
-import { Compass, BarChart3, GitCompare, Menu, X, ArrowUpRight } from 'lucide-react';
+import { Compass, BarChart3, GitCompare, Menu, X } from 'lucide-react';
 
 interface NavbarProps {
   currentRoute: string;
@@ -50,35 +49,26 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, navigate }) => {
           </div>
         </button>
 
-        {/* Center: Floating Glass Capsule Navigation */}
-        <nav className="hidden md:flex items-center p-1 rounded-full bg-[#0D131F]/90 border border-slate-800/80 shadow-inner">
-          {navLinks.map((link) => {
-            const isActive = currentRoute === link.id;
-            return (
-              <button
-                key={link.id}
-                onClick={() => navigate(link.id)}
-                className={`relative px-4 py-1.5 text-xs font-medium rounded-full transition-all duration-150 cursor-pointer ${
-                  isActive
-                    ? 'bg-cyan-500/20 text-cyan-300 font-semibold shadow-sm border border-cyan-500/30'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
-                }`}
-              >
-                {link.label}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Right: Primary Action & Mobile Toggle */}
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={() => navigate('explore')}
-            className="hidden sm:inline-flex items-center gap-2 px-4 py-1.5 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-full transition-all shadow-[0_0_16px_rgba(34,211,238,0.3)] cursor-pointer"
-          >
-            <Compass className="w-3.5 h-3.5" />
-            <span>Launch Explorer</span>
-          </button>
+        {/* Right: Floating Glass Capsule Navigation & Mobile Toggle */}
+        <div className="flex items-center gap-3">
+          <nav className="hidden md:flex items-center p-1 rounded-full bg-[#0D131F]/90 border border-slate-800/80 shadow-inner">
+            {navLinks.map((link) => {
+              const isActive = currentRoute === link.id;
+              return (
+                <button
+                  key={link.id}
+                  onClick={() => navigate(link.id)}
+                  className={`relative px-4 py-1.5 text-xs font-medium rounded-full transition-all duration-150 cursor-pointer ${
+                    isActive
+                      ? 'bg-cyan-500/20 text-cyan-300 font-semibold shadow-sm border border-cyan-500/30'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
+                  }`}
+                >
+                  {link.label}
+                </button>
+              );
+            })}
+          </nav>
 
           {/* Mobile Menu Toggle Button */}
           <div className="md:hidden flex items-center">
@@ -116,23 +106,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, navigate }) => {
                   <Icon className="w-4 h-4 text-cyan-400" />
                   <span>{link.label}</span>
                 </div>
-                {isActive && <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />}
+                {isActive && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
+                )}
               </button>
             );
           })}
-
-          <div className="pt-2">
-            <button
-              onClick={() => {
-                navigate('explore');
-                setMobileMenuOpen(false);
-              }}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-xl transition-all shadow-md cursor-pointer"
-            >
-              <Compass className="w-4 h-4" />
-              <span>Launch Terrain Explorer</span>
-            </button>
-          </div>
         </div>
       )}
     </header>
