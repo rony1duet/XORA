@@ -64,7 +64,7 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
       0.1,
       1000
     );
-    camera.position.set(0, 0, 19);
+    camera.position.set(0.6, 0.2, 19.5);
 
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -118,7 +118,7 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
     const systemGroup = new THREE.Group();
     scene.add(systemGroup);
 
-    const baseOffset = { x: 3.6, y: 0.2, z: 0 };
+    const baseOffset = { x: 4.4, y: 0.1, z: 0 };
     systemGroup.position.set(baseOffset.x, baseOffset.y, baseOffset.z);
 
     // -------------------------------------------------------------
@@ -675,20 +675,6 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
     let velocityY = 0;
 
     const onPointerDown = (e: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
-      mouseVector.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouseVector.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-      raycaster.setFromCamera(mouseVector, camera);
-      const hits = raycaster.intersectObjects(interactiveMeshes, false);
-      if (hits.length > 0) {
-        const hitName = hits[0].object.name;
-        if (hitName === 'earth') onExplore();
-        else if (hitName === 'moon') onExplore('moon');
-        else if (hitName === 'mars') onExplore('mars');
-        return;
-      }
-
       isDragging = true;
       prevPointerX = e.clientX;
       prevPointerY = e.clientY;
@@ -709,7 +695,6 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
         const hitObj = hits[0].object;
         const name = hitObj.name;
         setHoveredPlanet(name);
-        container.style.cursor = 'pointer';
 
         if (name === 'earth') {
           setActiveTelemetry({
@@ -742,8 +727,9 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
       } else {
         setHoveredPlanet(null);
         setActiveTelemetry(null);
-        container.style.cursor = isDragging ? 'grabbing' : 'grab';
       }
+
+      container.style.cursor = isDragging ? 'grabbing' : 'grab';
 
       if (isDragging) {
         const deltaX = clientX - prevPointerX;
@@ -761,7 +747,7 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
 
     const onPointerUp = () => {
       isDragging = false;
-      container.style.cursor = hoveredPlanet ? 'pointer' : 'grab';
+      container.style.cursor = 'grab';
     };
 
     container.addEventListener('mousedown', onPointerDown);
@@ -779,11 +765,11 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
       renderer.setSize(width, height);
 
       if (width < 640) {
-        systemGroup.position.set(0, -3.2, -4.5);
+        systemGroup.position.set(0, -2.6, -3);
         systemGroup.scale.set(0.68, 0.68, 0.68);
       } else if (width < 1024) {
-        systemGroup.position.set(1.2, -2.4, -2.5);
-        systemGroup.scale.set(0.8, 0.8, 0.8);
+        systemGroup.position.set(2.0, -1.0, -1.6);
+        systemGroup.scale.set(0.82, 0.82, 0.82);
       } else {
         systemGroup.position.set(baseOffset.x, baseOffset.y, baseOffset.z);
         systemGroup.scale.set(1.0, 1.0, 1.0);
@@ -953,7 +939,7 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
           </div>
           <div className="text-[10px] font-mono text-cyan-300 mt-1 flex items-center justify-between gap-3">
             <span>Gravity: {activeTelemetry.gravity}</span>
-            <span className="text-slate-400">Click to Inspect →</span>
+            <span className="text-slate-400">Live Orbit Telemetry</span>
           </div>
         </div>
       )}
@@ -989,110 +975,59 @@ export const CelestialHero3D: React.FC<CelestialHero3DProps> = ({
         </div>
       </div>
 
-      {/* Editorial Headline Hero Stage */}
+      {/* Reduced Editorial Headline Hero Stage */}
       <div className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 my-auto pointer-events-none">
-        <div className="max-w-xl xl:max-w-2xl space-y-6 pointer-events-auto">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-950/60 border border-cyan-800/40 text-xs font-mono text-cyan-300 shadow-sm">
+        <div className="max-w-md lg:max-w-lg space-y-4 pointer-events-auto">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/50 border border-cyan-800/35 text-xs font-mono text-cyan-300 shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            <span>Calibrated Terrestrial Proving Grounds</span>
+            <span>Topographic Digital Twins</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-white leading-[1.05] text-balance uppercase font-sans">
-            Explore Beyond Earth.
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-[1.08] uppercase font-sans">
+            Planetary<br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-blue-400">
+              Terrain Twins
+            </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-slate-300 leading-relaxed font-sans max-w-2xl font-light">
-            Match Moon and Mars landing regions with calibrated Earth test sites. 
-            Evaluate surface roughness, slope CDFs, and physical limitations before flight hardware leaves the ground.
+          <p className="text-xs sm:text-sm text-slate-300 font-light leading-relaxed max-w-sm">
+            Benchmarking calibrated Earth test sites against Moon and Mars landing terrains using high-resolution orbital topography.
           </p>
 
-          <div className="flex flex-wrap items-center gap-3.5 pt-3">
+          <div className="flex items-center gap-3 pt-2">
             <button
               onClick={() => onExplore()}
-              className="px-6 py-3.5 text-sm font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-full transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(34,211,238,0.3)] cursor-pointer"
+              className="px-5 py-2.5 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-full transition-all flex items-center gap-2 shadow-[0_0_16px_rgba(34,211,238,0.25)] cursor-pointer"
             >
-              <Compass className="w-4 h-4" />
-              <span>Launch Terrain Explorer</span>
+              <Compass className="w-3.5 h-3.5" />
+              <span>Explore Atlas</span>
             </button>
 
             {onCompare && (
               <button
                 onClick={onCompare}
-                className="px-6 py-3.5 text-sm font-semibold text-slate-200 bg-[#0E121C]/90 hover:bg-[#161B26] hover:text-white border border-[#1F2737] rounded-full transition-colors flex items-center gap-2 cursor-pointer backdrop-blur-sm"
+                className="px-5 py-2.5 text-xs font-semibold text-slate-200 bg-[#0E121C]/80 hover:bg-[#161B26] hover:text-white border border-[#1F2737] rounded-full transition-colors flex items-center gap-2 cursor-pointer backdrop-blur-sm"
               >
-                <GitCompare className="w-4 h-4 text-cyan-400" />
-                <span>Split-World Scrubber</span>
+                <GitCompare className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Compare Worlds</span>
               </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Bottom Celestial World Selector Cards */}
-      <div className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 pb-8 pt-4">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* Earth Card */}
-          <div
-            onClick={() => onExplore()}
-            className="p-3.5 rounded-xl bg-[#0B0F17]/85 backdrop-blur-md border border-slate-800/80 hover:border-emerald-500/60 transition-all cursor-pointer group shadow-lg"
-          >
-            <div className="flex items-center justify-between text-xs mb-1">
-              <span className="font-semibold text-emerald-400 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
-                <span>Earth Proving Ground</span>
-              </span>
-              <span className="font-mono text-slate-400 text-[11px]">12 Analog Sites</span>
-            </div>
-            <p className="text-xs text-slate-400 line-clamp-1 font-light">
-              Atacama, Haughton, Lanzarote, McMurdo, Svalbard
-            </p>
-            <div className="mt-2 text-[11px] font-mono text-slate-400 flex items-center justify-between">
-              <span>Gravity: 9.81 m/s²</span>
-              <span className="text-emerald-300 group-hover:underline">Explore Sites →</span>
-            </div>
-          </div>
-
-          {/* Moon Card */}
-          <div
-            onClick={() => onExplore('moon')}
-            className="p-3.5 rounded-xl bg-[#0B0F17]/85 backdrop-blur-md border border-slate-800/80 hover:border-cyan-500/60 transition-all cursor-pointer group shadow-lg"
-          >
-            <div className="flex items-center justify-between text-xs mb-1">
-              <span className="font-semibold text-cyan-400 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
-                <span>Lunar Targets</span>
-              </span>
-              <span className="font-mono text-slate-400 text-[11px]">Artemis Baselines</span>
-            </div>
-            <p className="text-xs text-slate-400 line-clamp-1 font-light">
-              Shackleton Rim, Taurus-Littrow, Tranquillitatis Pit
-            </p>
-            <div className="mt-2 text-[11px] font-mono text-slate-400 flex items-center justify-between">
-              <span>Gravity: 1.62 m/s²</span>
-              <span className="text-cyan-300 group-hover:underline">Find Lunar Twins →</span>
-            </div>
-          </div>
-
-          {/* Mars Card */}
-          <div
-            onClick={() => onExplore('mars')}
-            className="p-3.5 rounded-xl bg-[#0B0F17]/85 backdrop-blur-md border border-slate-800/80 hover:border-amber-500/60 transition-all cursor-pointer group shadow-lg"
-          >
-            <div className="flex items-center justify-between text-xs mb-1">
-              <span className="font-semibold text-amber-400 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(245,158,11,0.8)]" />
-                <span>Martian Targets</span>
-              </span>
-              <span className="font-mono text-slate-400 text-[11px]">Rover Exploration</span>
-            </div>
-            <p className="text-xs text-slate-400 line-clamp-1 font-light">
-              Jezero Crater Delta, Gale Crater, Oxia Planum
-            </p>
-            <div className="mt-2 text-[11px] font-mono text-slate-400 flex items-center justify-between">
-              <span>Gravity: 3.71 m/s²</span>
-              <span className="text-amber-300 group-hover:underline">Find Mars Twins →</span>
-            </div>
-          </div>
+      {/* Subtle Bottom Orbit Telemetry Indicator Bar */}
+      <div className="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 pb-6 pt-2 flex items-center justify-between text-[11px] font-mono text-slate-400 pointer-events-none">
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1.5 text-slate-300">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+            <span>Earth · Moon · Mars</span>
+          </span>
+          <span className="text-slate-600">·</span>
+          <span className="hidden sm:inline text-slate-400">Continuous Multi-Body Orbital Mechanics</span>
+        </div>
+        <div className="text-slate-400 text-[10px]">
+          Drag canvas to rotate 3D view
         </div>
       </div>
     </div>
