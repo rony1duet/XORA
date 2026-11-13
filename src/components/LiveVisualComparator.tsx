@@ -112,6 +112,12 @@ export const LiveVisualComparator: React.FC<LiveVisualComparatorProps> = ({
   const targetMapInstanceRef = useRef<L.Map | null>(null);
   const targetTileLayerRef = useRef<L.TileLayer | null>(null);
 
+  // Split Mode Map Refs
+  const splitEarthContainerRef = useRef<HTMLDivElement>(null);
+  const splitTargetContainerRef = useRef<HTMLDivElement>(null);
+  const splitEarthMapInstanceRef = useRef<L.Map | null>(null);
+  const splitTargetMapInstanceRef = useRef<L.Map | null>(null);
+
   // Synchronize target when activeTarget prop changes
   useEffect(() => {
     if (activeTarget) {
@@ -336,6 +342,130 @@ export const LiveVisualComparator: React.FC<LiveVisualComparatorProps> = ({
       targetMapInstanceRef.current = null;
     };
   }, [visualMode, target]);
+
+  // 3. Mount & Synchronize Dual Stacked Split Scrubber Leaflet Maps
+  useEffect(() => {
+    if (visualMode !== 'split') {
+      if (splitEarthMapInstanceRef.current) {
+        splitEarthMapInstanceRef.current.remove();
+        splitEarthMapInstanceRef.current = null;
+      }
+      if (splitTargetMapInstanceRef.current) {
+        splitTargetMapInstanceRef.current.remove();
+        splitTargetMapInstanceRef.current = null;
+      }
+      return;
+    }
+
+    const earthEl = splitEarthContainerRef.current;
+    const targetEl = splitTargetContainerRef.current;
+
+    const lat = customPoint ? customPoint.lat : selectedEarthSite.coordinates.lat;
+    const lng = customPoint ? customPoint.lng : selectedEarthSite.coordinates.lng;
+
+    if (earthEl) {
+      if ((earthEl as any)._leaflet_id) {
+        delete (earthEl as any)._leaflet_id;
+      }
+
+      const earthMap = L.map(earthEl, {
+        center: [lat, lng],
+        zoom: 8,
+        minZoom: 2,
+        maxZoom: 16,
+        zoomControl: false,
+        attributionControl: false,
+      });
+
+      let tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+      if (earthBasemap === 'dark') {
+        tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}';
+      } else if (earthBasemap === 'topo') {
+        tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+      }
+
+      L.tileLayer(tileUrl, { maxZoom: 16 }).addTo(earthMap);
+
+      if (earthBasemap === 'satellite') {
+        L.tileLayer(
+          'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+          { maxZoom: 16, opacity: 0.7 }
+        ).addTo(earthMap);
+      }
+
+      const earthCrosshair = L.divIcon({
+        className: 'split-earth-crosshair',
+        html: `
+          <div style="position: relative; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
+            <div style="position: absolute; width: 38px; height: 38px; border-radius: 50%; border: 2px dashed #10B981; animation: spin 8s linear infinite; opacity: 0.85;"></div>
+            <div style="width: 10px; height: 10px; background: #10B981; border: 2px solid #FFFFFF; border-radius: 50%; box-shadow: 0 0 10px #10B981;"></div>
+          </div>
+        `,
+        iconSize: [38, 38],
+        iconAnchor: [19, 19],
+      });
+      L.marker([lat, lng], { icon: earthCrosshair }).addTo(earthMap);
+      splitEarthMapInstanceRef.current = earthMap;
+    }
+
+    if (targetEl) {
+      if ((targetEl as any)._leaflet_id) {
+        delete (targetEl as any)._leaflet_id;
+      }
+
+      const isMoon = target.body === 'moon';
+      const targetMap = L.map(targetEl, {
+        center: [target.coordinates.lat, target.coordinates.lng],
+        zoom: 3,
+        minZoom: 1,
+        maxZoom: 7,
+        zoomControl: false,
+        attributionControl: false,
+      });
+
+      const planetaryTileUrl = isMoon
+        ? 'https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-moon-basemap-v0-1/all/{z}/{x}/{y}.png'
+        : 'https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-mars-basemap-v0-2/all/{z}/{x}/{y}.png';
+
+      L.tileLayer(planetaryTileUrl, {
+        maxZoom: 7,
+        minZoom: 1,
+        attribution: isMoon ? 'USGS / NASA LRO LOLA' : 'USGS / NASA Mars Viking MDIM',
+      }).addTo(targetMap);
+
+      const targetColor = isMoon ? '#22D3EE' : '#FB923C';
+      const targetCrosshair = L.divIcon({
+        className: 'split-target-crosshair',
+        html: `
+          <div style="position: relative; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;">
+            <div style="position: absolute; width: 42px; height: 42px; border-radius: 50%; border: 2px dashed ${targetColor}; animation: spin 6s linear infinite; opacity: 0.9;"></div>
+            <div style="width: 12px; height: 12px; background: ${targetColor}; border: 2px solid #FFFFFF; border-radius: 50%; box-shadow: 0 0 12px ${targetColor};"></div>
+          </div>
+        `,
+        iconSize: [42, 42],
+        iconAnchor: [21, 21],
+      });
+      L.marker([target.coordinates.lat, target.coordinates.lng], { icon: targetCrosshair }).addTo(targetMap);
+      splitTargetMapInstanceRef.current = targetMap;
+    }
+
+    const timer = setTimeout(() => {
+      splitEarthMapInstanceRef.current?.invalidateSize();
+      splitTargetMapInstanceRef.current?.invalidateSize();
+    }, 120);
+
+    return () => {
+      clearTimeout(timer);
+      if (splitEarthMapInstanceRef.current) {
+        splitEarthMapInstanceRef.current.remove();
+        splitEarthMapInstanceRef.current = null;
+      }
+      if (splitTargetMapInstanceRef.current) {
+        splitTargetMapInstanceRef.current.remove();
+        splitTargetMapInstanceRef.current = null;
+      }
+    };
+  }, [visualMode, selectedEarthSite, customPoint, target, earthBasemap]);
 
   // Elevation range bounds
   const elevationExtremes = useMemo(() => {
@@ -977,78 +1107,189 @@ export const LiveVisualComparator: React.FC<LiveVisualComparatorProps> = ({
           </div>
         )}
 
-        {/* MODE 3: Precision Split-World Scrubber */}
+        {/* MODE 3: Precision Split-World Scrubber (Dual Live Stacked Leaflet Maps) */}
         {visualMode === 'split' && (
-          <div
-            ref={containerRef}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            className="relative w-full aspect-16/9 sm:aspect-21/9 max-h-[580px] bg-[#07080D] cursor-ew-resize overflow-hidden touch-none"
-          >
-            {/* Right: Earth Analog Map */}
-            <div className="absolute inset-0 w-full h-full pointer-events-none select-none">
-              <img
-                src={earthTileImage}
-                alt={selectedEarthSite.name}
-                className="w-full h-full object-cover pointer-events-none select-none"
-              />
-              <div className="absolute bottom-4 right-4 bg-[#090D18]/90 backdrop-blur-md border border-emerald-500/40 rounded-xl p-3 text-right shadow-2xl pointer-events-none z-20 space-y-1">
-                <div className="text-[10px] font-mono uppercase text-emerald-400 font-bold tracking-wider flex items-center justify-end gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Earth Selected Twin</span>
-                </div>
-                <div className="text-xs sm:text-sm font-bold text-white">
-                  {selectedEarthSite.name}
-                </div>
-                <div className="text-[10px] font-mono text-slate-400">
-                  {selectedEarthSite.coordinates.lat.toFixed(3)}°N, {selectedEarthSite.coordinates.lng.toFixed(3)}°E · Copernicus 30m
-                </div>
+          <div className="relative flex flex-col bg-[#07080D]">
+            {/* Quick preset selector and telemetry bar */}
+            <div className="flex flex-wrap items-center justify-between px-4 py-2 bg-[#090D18] border-b border-slate-800 text-xs gap-2">
+              <div className="flex items-center gap-2 text-slate-300">
+                <SlidersHorizontal className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="font-mono text-[11px]">
+                  Scrubber Split: <strong className={target.body === 'moon' ? 'text-cyan-300' : 'text-amber-300'}>{scrubberPos.toFixed(0)}% {target.body === 'moon' ? 'Moon' : 'Mars'}</strong> / <strong className="text-emerald-300">{(100 - scrubberPos).toFixed(0)}% Earth</strong>
+                </span>
+              </div>
+              <div className="flex items-center gap-2 font-mono text-[11px]">
+                <span className="text-slate-500 hidden sm:inline">Presets:</span>
+                <button
+                  type="button"
+                  onClick={() => setScrubberPos(25)}
+                  className={`px-2.5 py-0.5 rounded cursor-pointer border transition-colors ${
+                    scrubberPos === 25
+                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400/50 font-bold'
+                      : 'bg-slate-800/60 text-slate-400 hover:text-white border-slate-700'
+                  }`}
+                >
+                  25%
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setScrubberPos(50)}
+                  className={`px-2.5 py-0.5 rounded cursor-pointer border transition-colors ${
+                    scrubberPos === 50
+                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400/50 font-bold'
+                      : 'bg-slate-800/60 text-slate-400 hover:text-white border-slate-700'
+                  }`}
+                >
+                  50% (Split)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setScrubberPos(75)}
+                  className={`px-2.5 py-0.5 rounded cursor-pointer border transition-colors ${
+                    scrubberPos === 75
+                      ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400/50 font-bold'
+                      : 'bg-slate-800/60 text-slate-400 hover:text-white border-slate-700'
+                  }`}
+                >
+                  75%
+                </button>
               </div>
             </div>
 
-            {/* Left: Planetary Map clipped at scrubberPos */}
+            {/* Main Interactive Drag Stage */}
             <div
-              className="absolute inset-0 h-full overflow-hidden pointer-events-none select-none z-10"
-              style={{ width: `${scrubberPos}%` }}
+              ref={containerRef}
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
+              className="relative w-full h-[460px] sm:h-[520px] bg-[#07080D] cursor-ew-resize overflow-hidden touch-none select-none"
             >
+              {/* Layer 1 (Base): Live Earth Satellite Leaflet Map */}
+              <div className="absolute inset-0 w-full h-full pointer-events-none select-none">
+                <div ref={splitEarthContainerRef} className="w-full h-full" />
+                <div className="absolute top-3 right-3 z-10 flex flex-col gap-1 shadow">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      splitEarthMapInstanceRef.current?.zoomIn();
+                    }}
+                    className="w-7 h-7 rounded bg-[#090D18]/90 hover:bg-slate-800 border border-slate-700 text-white flex items-center justify-center text-xs pointer-events-auto cursor-pointer"
+                    title="Zoom In Earth"
+                  >
+                    <ZoomIn className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      splitEarthMapInstanceRef.current?.zoomOut();
+                    }}
+                    className="w-7 h-7 rounded bg-[#090D18]/90 hover:bg-slate-800 border border-slate-700 text-white flex items-center justify-center text-xs pointer-events-auto cursor-pointer"
+                    title="Zoom Out Earth"
+                  >
+                    <ZoomOut className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="absolute bottom-4 right-4 bg-[#090D18]/90 backdrop-blur-md border border-emerald-500/40 rounded-xl p-3 text-right shadow-2xl pointer-events-auto z-20 space-y-1">
+                  <div className="text-[10px] font-mono uppercase text-emerald-400 font-bold tracking-wider flex items-center justify-end gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Earth Selected Twin</span>
+                  </div>
+                  <div className="text-xs sm:text-sm font-bold text-white">
+                    {selectedEarthSite.name}
+                  </div>
+                  <div className="text-[10px] font-mono text-slate-400">
+                    {selectedEarthSite.coordinates.lat.toFixed(3)}°N, {selectedEarthSite.coordinates.lng.toFixed(3)}°E · Copernicus 30m
+                  </div>
+                  <div className="pt-1 flex justify-end">
+                    <a
+                      href={googleEarthUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-[10px] font-mono text-emerald-300 transition-colors"
+                    >
+                      <span>Google Earth 3D</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              {/* Layer 2 (Clipped Overlay): Live Planetary Reference Map (Moon/Mars) */}
               <div
-                className="absolute inset-y-0 left-0 h-full pointer-events-none select-none"
+                className="absolute inset-0 w-full h-full overflow-hidden z-10 pointer-events-none select-none"
                 style={{
-                  width: containerWidth ? `${containerWidth}px` : '100%',
+                  clipPath: `polygon(0 0, ${scrubberPos}% 0, ${scrubberPos}% 100%, 0 100%)`,
                 }}
               >
-                <img
-                  src={targetTileImage}
-                  alt={target.name}
-                  className="w-full h-full object-cover pointer-events-none select-none"
-                />
+                <div ref={splitTargetContainerRef} className="w-full h-full" />
+                <div className="absolute top-3 left-3 z-10 flex flex-col gap-1 shadow">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      splitTargetMapInstanceRef.current?.zoomIn();
+                    }}
+                    className="w-7 h-7 rounded bg-[#090D18]/90 hover:bg-slate-800 border border-slate-700 text-white flex items-center justify-center text-xs pointer-events-auto cursor-pointer"
+                    title={`Zoom In ${target.body === 'moon' ? 'Moon' : 'Mars'}`}
+                  >
+                    <ZoomIn className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      splitTargetMapInstanceRef.current?.zoomOut();
+                    }}
+                    className="w-7 h-7 rounded bg-[#090D18]/90 hover:bg-slate-800 border border-slate-700 text-white flex items-center justify-center text-xs pointer-events-auto cursor-pointer"
+                    title={`Zoom Out ${target.body === 'moon' ? 'Moon' : 'Mars'}`}
+                  >
+                    <ZoomOut className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="absolute bottom-4 left-4 bg-[#090D18]/90 backdrop-blur-md border border-cyan-500/40 rounded-xl p-3 shadow-2xl pointer-events-auto z-20 space-y-1">
+                  <div className="text-[10px] font-mono uppercase text-cyan-400 font-bold tracking-wider flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                    <span>{target.body === 'moon' ? 'Lunar Reference' : 'Martian Reference'}</span>
+                  </div>
+                  <div className="text-xs sm:text-sm font-bold text-white">
+                    {target.name}
+                  </div>
+                  <div className="text-[10px] font-mono text-slate-400">
+                    {target.coordinates.lat.toFixed(3)}°N, {target.coordinates.lng.toFixed(3)}°E · {target.elevationDatum.split(' ')[0]}
+                  </div>
+                  <div className="pt-1 flex">
+                    <a
+                      href={nasaTrekUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded border text-[10px] font-mono transition-colors ${
+                        target.body === 'moon'
+                          ? 'bg-cyan-500/20 hover:bg-cyan-500/30 border-cyan-500/40 text-cyan-300'
+                          : 'bg-amber-500/20 hover:bg-amber-500/30 border-amber-500/40 text-amber-300'
+                      }`}
+                    >
+                      <span>NASA Trek 3D</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  </div>
+                </div>
               </div>
 
-              <div className="absolute bottom-4 left-4 bg-[#090D18]/90 backdrop-blur-md border border-cyan-500/40 rounded-xl p-3 shadow-2xl pointer-events-none z-20 space-y-1">
-                <div className="text-[10px] font-mono uppercase text-cyan-400 font-bold tracking-wider flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                  <span>{target.body === 'moon' ? 'Lunar Reference' : 'Martian Reference'}</span>
+              {/* Draggable Divider Handle */}
+              <div
+                className="absolute top-0 bottom-0 w-1 bg-cyan-400 shadow-[0_0_16px_rgba(34,211,238,0.95)] pointer-events-none z-30"
+                style={{ left: `${scrubberPos}%` }}
+              >
+                <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-[#0B0F17] border-2 border-cyan-400 flex items-center justify-center text-cyan-300 shadow-[0_0_18px_rgba(34,211,238,0.7)] pointer-events-auto cursor-ew-resize">
+                  <SlidersHorizontal className="w-4 h-4" />
                 </div>
-                <div className="text-xs sm:text-sm font-bold text-white">
-                  {target.name}
+                <div className="absolute top-4 -translate-x-1/2 bg-[#0B0F17]/95 px-2.5 py-1 rounded-full border border-cyan-500/50 text-[10px] font-mono text-cyan-300 whitespace-nowrap shadow-xl">
+                  {scrubberPos.toFixed(0)}% / {(100 - scrubberPos).toFixed(0)}%
                 </div>
-                <div className="text-[10px] font-mono text-slate-400">
-                  {target.coordinates.lat.toFixed(3)}°N, {target.coordinates.lng.toFixed(3)}°E · {target.elevationDatum.split(' ')[0]}
-                </div>
-              </div>
-            </div>
-
-            {/* Draggable Divider Handle */}
-            <div
-              className="absolute top-0 bottom-0 w-0.5 bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.9)] pointer-events-none z-30"
-              style={{ left: `${scrubberPos}%` }}
-            >
-              <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-[#0B0F17] border-2 border-cyan-400 flex items-center justify-center text-cyan-300 shadow-[0_0_16px_rgba(34,211,238,0.6)]">
-                <SlidersHorizontal className="w-4 h-4" />
-              </div>
-              <div className="absolute top-4 -translate-x-1/2 bg-[#0B0F17]/90 px-2 py-0.5 rounded border border-cyan-500/40 text-[10px] font-mono text-cyan-300 whitespace-nowrap shadow-md">
-                {scrubberPos.toFixed(0)}% / {(100 - scrubberPos).toFixed(0)}%
               </div>
             </div>
           </div>

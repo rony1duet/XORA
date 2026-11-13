@@ -157,7 +157,7 @@ export const SplitWorldScrubber: React.FC<SplitWorldScrubberProps> = ({ referenc
           onPointerUp={onPointerUp}
           className="relative w-full aspect-16/9 sm:aspect-21/9 bg-[#07080D] select-none cursor-ew-resize overflow-hidden touch-none"
         >
-          {/* Layer 1 (Right side): Earth Analog Image */}
+          {/* Layer 1 (Base): Earth Analog Image */}
           <div className="absolute inset-0 w-full h-full pointer-events-none select-none">
             <ShimmerImage
               src={getTerrainImage(earth.id, earth.demImageUrl)}
@@ -177,24 +177,17 @@ export const SplitWorldScrubber: React.FC<SplitWorldScrubberProps> = ({ referenc
             </div>
           </div>
 
-          {/* Layer 2 (Left side): Planetary Reference clipped precisely at scrubberPosition */}
+          {/* Layer 2 (Top Overlay): Planetary Reference precisely clipped via hardware-accelerated clipPath */}
           <div
-            className="absolute inset-0 h-full overflow-hidden pointer-events-none select-none z-10"
-            style={{ width: `${scrubberPosition}%` }}
+            className="absolute inset-0 w-full h-full pointer-events-none select-none z-10"
+            style={{ clipPath: `polygon(0 0, ${scrubberPosition}% 0, ${scrubberPosition}% 100%, 0 100%)` }}
           >
-            <div
-              className="absolute inset-y-0 left-0 h-full pointer-events-none select-none"
-              style={{
-                width: containerWidth ? `${containerWidth}px` : '100%',
-              }}
-            >
-              <ShimmerImage
-                src={getTerrainImage(reference.id, reference.demImageUrl)}
-                alt={`Planetary Reference: ${reference.name}`}
-                draggable={false}
-                className="w-full h-full object-cover pointer-events-none select-none"
-              />
-            </div>
+            <ShimmerImage
+              src={getTerrainImage(reference.id, reference.demImageUrl)}
+              alt={`Planetary Reference: ${reference.name}`}
+              draggable={false}
+              className="w-full h-full object-cover pointer-events-none select-none"
+            />
             {/* Target Label (Bottom Left) */}
             <div className="absolute bottom-4 left-4 bg-[#090A0F]/85 backdrop-blur-md border border-cyan-500/40 rounded-lg px-3 py-1.5 shadow-lg pointer-events-none select-none z-20">
               <div className="text-[10px] font-mono uppercase text-cyan-400 font-semibold tracking-wider">
@@ -214,6 +207,9 @@ export const SplitWorldScrubber: React.FC<SplitWorldScrubberProps> = ({ referenc
           >
             <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-[#0F121C] border-2 border-cyan-400 flex items-center justify-center text-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.5)]">
               <SlidersHorizontal className="w-3.5 h-3.5" />
+            </div>
+            <div className="absolute top-3 -translate-x-1/2 bg-[#0F121C]/90 px-2 py-0.5 rounded border border-cyan-500/40 text-[10px] font-mono text-cyan-300 whitespace-nowrap shadow">
+              {scrubberPosition.toFixed(0)}% / {(100 - scrubberPosition).toFixed(0)}%
             </div>
           </div>
         </div>
