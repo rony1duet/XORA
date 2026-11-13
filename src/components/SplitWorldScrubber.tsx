@@ -293,16 +293,7 @@ export const SplitWorldScrubber: React.FC<SplitWorldScrubberProps> = ({ referenc
               </div>
             </div>
           </div>
-                <span className="w-3.5 h-0.5 bg-cyan-400 inline-block rounded" />
-                <span>{reference.name} (Relief {reference.metrics.elevationReliefM}m)</span>
-              </div>
-              <div className="text-emerald-400 flex items-center gap-2">
-                <span className="w-3.5 h-0.5 bg-emerald-400 border-dashed inline-block" />
-                <span>{earth.name} (Relief {earth.metrics.elevationReliefM}m)</span>
-              </div>
-            </div>
-          </div >
-        </div >
+        </div>
       )}
 
 {/* Scientific Notice Footer */ }

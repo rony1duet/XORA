@@ -8,7 +8,22 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import { EarthCandidateSite, CelestialBody } from '../types/analog';
-import { Navigation, ZoomIn, ZoomOut, Maximize2, MapPin, Database, Layers, Loader2, Globe, Mountain, Map as MapIcon } from 'lucide-react';
+import { 
+  Navigation, 
+  ZoomIn, 
+  ZoomOut, 
+  Maximize2, 
+  MapPin, 
+  Database, 
+  Layers, 
+  Loader2, 
+  Globe, 
+  Mountain, 
+  Map as MapIcon,
+  Eye,
+  Crosshair,
+  Sparkles
+} from 'lucide-react';
 import { testCartoConnection, fetchCartoSiteBuffers, CartoConnectionStatus } from '../services/cartoService';
 
 interface InteractiveMapProps {
@@ -16,6 +31,7 @@ interface InteractiveMapProps {
   selectedSiteId: string;
   onSelectSite: (site: EarthCandidateSite) => void;
   activeTargetBody?: CelestialBody;
+  onOpenLiveCompare?: (site: EarthCandidateSite, customPoint?: { lat: number; lng: number; label?: string } | null) => void;
 }
 
 type BasemapStyle = 'dark' | 'satellite' | 'osm';
@@ -51,12 +67,15 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   sites,
   selectedSiteId,
   onSelectSite,
+  activeTargetBody = 'mars',
+  onOpenLiveCompare,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const currentLayersRef = useRef<L.Layer[]>([]);
   const markersRef = useRef<{ [id: string]: L.Marker }>({});
   const bufferLayerRef = useRef<L.GeoJSON | null>(null);
+  const customProbeMarkerRef = useRef<L.Marker | null>(null);
   const cachedBuffersRef = useRef<any>(null);
   const prevSelectedSiteIdRef = useRef<string>(selectedSiteId);
 
@@ -64,6 +83,12 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const [cartoStatus, setCartoStatus] = useState<CartoConnectionStatus | null>(null);
   const [showCartoBuffers, setShowCartoBuffers] = useState<boolean>(true);
   const [loadingBuffers, setLoadingBuffers] = useState<boolean>(false);
+  const [customProbe, setCustomProbe] = useState<{
+    lat: number;
+    lng: number;
+    closestSite: EarthCandidateSite;
+    distanceKm: number;
+  } | null>(null);
 
   // Health check CARTO Cloud Native BigQuery connection on mount
   useEffect(() => {
@@ -166,6 +191,10 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       resizeObserver.disconnect();
       Object.values(markersRef.current).forEach((m) => m.remove());
       markersRef.current = {};
+      if (customProbeMarkerRef.current) {
+        customProbeMarkerRef.current.remove();
+        customProbeMarkerRef.current = null;
+      }
       if (bufferLayerRef.current) {
         bufferLayerRef.current.remove();
         bufferLayerRef.current = null;
@@ -178,6 +207,54 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       mapInstanceRef.current = null;
     };
   }, []); // Run on mount / unmount
+
+  // 1.1 Custom Earth Point Probe click listener
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const handleMapClick = (e: L.LeafletMouseEvent) => {
+      const { lat, lng } = e.latlng;
+      if (sites.length === 0) return;
+
+      let closest = sites[0];
+      let minDistance = Infinity;
+      for (const s of sites) {
+        const dLat = s.coordinates.lat - lat;
+        const dLng = s.coordinates.lng - lng;
+        const dist = Math.hypot(dLat, dLng);
+        if (dist < minDistance) {
+          minDistance = dist;
+          closest = s;
+        }
+      }
+
+      const distanceKm = Math.round(minDistance * 111);
+      setCustomProbe({ lat, lng, closestSite: closest, distanceKm });
+
+      if (customProbeMarkerRef.current) {
+        customProbeMarkerRef.current.setLatLng([lat, lng]);
+      } else {
+        const probeIcon = L.divIcon({
+          className: 'custom-probe-marker',
+          html: `
+            <div style="position: relative; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;">
+              <div style="position: absolute; width: 34px; height: 34px; border-radius: 50%; border: 2px solid #22D3EE; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite; opacity: 0.75;"></div>
+              <div style="width: 14px; height: 14px; background: #22D3EE; border: 2px solid #FFFFFF; border-radius: 50%; box-shadow: 0 0 10px #22D3EE;"></div>
+            </div>
+          `,
+          iconSize: [34, 34],
+          iconAnchor: [17, 17],
+        });
+        customProbeMarkerRef.current = L.marker([lat, lng], { icon: probeIcon }).addTo(map);
+      }
+    };
+
+    map.on('click', handleMapClick);
+    return () => {
+      map.off('click', handleMapClick);
+    };
+  }, [sites]);
 
   // 2. Synchronize markers whenever candidate sites change
   useEffect(() => {
@@ -515,30 +592,83 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           </button>
         </div>
 
-        {/* Selected Site Quick Floating Card */}
-        {activeSite && (
-          <div className="absolute bottom-4 left-4 right-4 sm:right-auto z-10 max-w-sm bg-[#0E1523]/95 backdrop-blur-md border border-slate-700/80 rounded-lg p-3 text-xs shadow-xl space-y-1.5 pointer-events-auto">
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-bold text-white flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-cyan-400" />
-                <span>{activeSite.name}</span>
-              </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-cyan-300 uppercase">
-                {activeSite.country}
-              </span>
-            </div>
+        {/* Selected Site / Custom Probed Point Quick Floating Card */}
+        {(customProbe || activeSite) && (
+          <div className="absolute bottom-4 left-4 right-4 sm:right-auto z-10 max-w-sm bg-[#0E1523]/95 backdrop-blur-md border border-slate-700/80 rounded-xl p-3.5 text-xs shadow-2xl space-y-2 pointer-events-auto">
+            {customProbe ? (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-cyan-300 flex items-center gap-1.5">
+                    <Crosshair className="w-3.5 h-3.5 text-cyan-400 animate-spin" />
+                    <span>Custom Probed Earth Point</span>
+                  </span>
+                  <button
+                    onClick={() => {
+                      setCustomProbe(null);
+                      if (customProbeMarkerRef.current) {
+                        customProbeMarkerRef.current.remove();
+                        customProbeMarkerRef.current = null;
+                      }
+                    }}
+                    className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <div className="text-[11px] font-mono text-cyan-200 bg-[#090D18] p-1.5 rounded border border-cyan-900/60 flex justify-between">
+                  <span>{customProbe.lat.toFixed(4)}°N, {customProbe.lng.toFixed(4)}°E</span>
+                  <span>{customProbe.distanceKm}km to {customProbe.closestSite.name}</span>
+                </div>
+                <p className="text-slate-300 text-[11px] leading-tight">
+                  Nearest geological analog: <strong className="text-white">{customProbe.closestSite.name}</strong> ({customProbe.closestSite.country})
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-white flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>{activeSite.name}</span>
+                  </span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-cyan-300 uppercase">
+                    {activeSite.country}
+                  </span>
+                </div>
 
-            <p className="text-slate-300 text-[11px] leading-relaxed line-clamp-2">
-              {activeSite.geologicalContext}
-            </p>
+                <p className="text-slate-300 text-[11px] leading-relaxed line-clamp-2">
+                  {activeSite.geologicalContext}
+                </p>
 
-            <div className="flex items-center justify-between pt-1 border-t border-slate-800/80 text-[10px] font-mono text-slate-400">
-              <span>{activeSite.coordinates.lat.toFixed(2)}°N, {activeSite.coordinates.lng.toFixed(2)}°E</span>
-              <span className="text-cyan-300 flex items-center gap-1">
-                <Database className="w-3 h-3 text-cyan-400" />
-                <span>CARTO 25km Buffer Active</span>
-              </span>
-            </div>
+                <div className="flex items-center justify-between pt-1 border-t border-slate-800/80 text-[10px] font-mono text-slate-400">
+                  <span>{activeSite.coordinates.lat.toFixed(2)}°N, {activeSite.coordinates.lng.toFixed(2)}°E</span>
+                  <span className="text-cyan-300 flex items-center gap-1">
+                    <Database className="w-3 h-3 text-cyan-400" />
+                    <span>CARTO 25km Buffer Active</span>
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Direct Live Visual Compare Action Button */}
+            {onOpenLiveCompare && (
+              <button
+                onClick={() => {
+                  if (customProbe) {
+                    onOpenLiveCompare(customProbe.closestSite, {
+                      lat: customProbe.lat,
+                      lng: customProbe.lng,
+                      label: `Custom Probed Point (${customProbe.lat.toFixed(2)}°, ${customProbe.lng.toFixed(2)}°)`,
+                    });
+                  } else {
+                    onOpenLiveCompare(activeSite, null);
+                  }
+                }}
+                className="w-full mt-2 py-2 px-3 rounded-lg bg-gradient-to-r from-cyan-500 to-teal-400 hover:from-cyan-400 hover:to-teal-300 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 cursor-pointer transition-all transform active:scale-[0.98]"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                <span>Live Visual Compare (Earth vs {activeTargetBody === 'moon' ? 'Moon' : 'Mars'})</span>
+              </button>
+            )}
           </div>
         )}
       </div>

@@ -28,8 +28,11 @@ import {
   Bookmark,
   Search,
   Filter,
+  Eye,
+  SlidersHorizontal
 } from 'lucide-react';
 import { ShimmerMetricCard } from '../components/Shimmer';
+import { LiveVisualComparator, CustomProbedPoint } from '../components/LiveVisualComparator';
 
 interface ExploreViewProps {
   initialBody?: CelestialBody;
@@ -55,6 +58,8 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   const [selectedActivity, setSelectedActivity] = useState<MissionActivity>('rover-traverse');
   const [selectedSiteId, setSelectedSiteId] = useState<string>(sites[0]?.id || 'atacama-yungay');
   const [candidateSearchQuery, setCandidateSearchQuery] = useState<string>('');
+  const [isLiveCompareOpen, setIsLiveCompareOpen] = useState<boolean>(false);
+  const [liveCompareCustomPoint, setLiveCompareCustomPoint] = useState<CustomProbedPoint | null>(null);
 
   const availableReferences = useMemo(
     () => references.filter((r) => r.body === selectedBody),
@@ -209,6 +214,11 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
             selectedSiteId={selectedResult.site.id}
             onSelectSite={(site) => setSelectedSiteId(site.id)}
             activeTargetBody={selectedBody}
+            onOpenLiveCompare={(site, customPt) => {
+              setSelectedSiteId(site.id);
+              setLiveCompareCustomPoint(customPt ? { lat: customPt.lat, lng: customPt.lng, label: customPt.label } : null);
+              setIsLiveCompareOpen(true);
+            }}
           />
 
           {/* Ranked Candidates Strip with Live Search Filter */}
@@ -376,6 +386,18 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
 
             {/* Direct Action Links */}
             <div className="pt-2 flex flex-col gap-2">
+              {/* Primary Live Visual Comparison Studio Button */}
+              <button
+                onClick={() => {
+                  setLiveCompareCustomPoint(null);
+                  setIsLiveCompareOpen(true);
+                }}
+                className="w-full py-2.5 px-4 text-xs font-bold text-slate-950 bg-gradient-to-r from-cyan-400 via-teal-300 to-cyan-300 hover:from-cyan-300 hover:to-teal-200 rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-cyan-500/25 active:scale-[0.99]"
+              >
+                <Eye className="w-4 h-4" />
+                <span>Live Visual Comparison: {selectedResult.site.name} vs {activeReference.name}</span>
+              </button>
+
               <button
                 onClick={() =>
                   onNavigate('compare', {
@@ -383,15 +405,15 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                     earth: selectedResult.site.id,
                   })
                 }
-                className="w-full py-2.5 px-4 text-xs font-semibold text-slate-950 bg-cyan-400 hover:bg-cyan-300 rounded-md transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+                className="w-full py-2 px-4 text-xs font-semibold text-slate-200 bg-[#161B26] hover:bg-[#1F2738] border border-[#252F42] hover:border-cyan-500/50 rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
-                <GitCompare className="w-3.5 h-3.5" />
-                <span>Open Split-World Scrubber</span>
+                <GitCompare className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Open Full-Page Dual Comparator</span>
               </button>
 
               <button
                 onClick={() => onNavigate('sites', { id: selectedResult.site.id })}
-                className="w-full py-2 px-4 text-xs font-medium text-slate-200 bg-[#161B26] hover:bg-[#202737] rounded-md border border-[#252F42] transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2 px-4 text-xs font-medium text-slate-300 bg-[#121624] hover:bg-[#1A2033] rounded-lg border border-[#1F2737] transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 <FileText className="w-3.5 h-3.5 text-slate-400" />
                 <span>View Full Evidence Passport &amp; Rehearsals</span>
@@ -401,6 +423,20 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Live Visual Comparison Modal (Earth Point vs Moon / Mars) */}
+      {isLiveCompareOpen && (
+        <LiveVisualComparator
+          isModal
+          isOpen={isLiveCompareOpen}
+          onClose={() => setIsLiveCompareOpen(false)}
+          selectedEarthSite={selectedResult.site}
+          customPoint={liveCompareCustomPoint}
+          activeTarget={activeReference}
+          allTargets={references}
+          onSelectTarget={(t) => setSelectedReferenceId(t.id)}
+        />
+      )}
     </div>
   );
 };

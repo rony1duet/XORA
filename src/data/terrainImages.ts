@@ -65,6 +65,29 @@ export const TERRAIN_IMAGES: Record<string, string> = {
   'kilbourne-hole': lunarMareImg,
 };
 
-export function getTerrainImage(siteId: string, defaultFallback = atacamaImg): string {
-  return TERRAIN_IMAGES[siteId] || defaultFallback;
+export function getTerrainImage(
+  siteId: string,
+  defaultFallback?: string,
+  geologicalClass?: string
+): string {
+  if (defaultFallback && (defaultFallback.startsWith('http') || defaultFallback.startsWith('data:'))) {
+    return defaultFallback;
+  }
+  if (TERRAIN_IMAGES[siteId]) {
+    return TERRAIN_IMAGES[siteId];
+  }
+
+  // Smart geological class fallback for dynamically fetched API sites
+  if (geologicalClass) {
+    const geo = geologicalClass.toLowerCase();
+    if (geo.includes('impact') || geo.includes('crater')) return meteorCraterImg;
+    if (geo.includes('lava') || geo.includes('tube') || geo.includes('cave')) return lanzaroteImg;
+    if (geo.includes('volcanic') || geo.includes('basalt') || geo.includes('ophiolite')) return basaltImg;
+    if (geo.includes('polar') || geo.includes('ice') || geo.includes('glacier')) return mcmurdoImg;
+    if (geo.includes('permafrost') || geo.includes('polygon')) return svalbardImg;
+    if (geo.includes('hydrothermal') || geo.includes('acid') || geo.includes('iron')) return rioTintoImg;
+    if (geo.includes('playa') || geo.includes('salt') || geo.includes('dune') || geo.includes('aeolian')) return deathValleyImg;
+  }
+
+  return defaultFallback && TERRAIN_IMAGES[defaultFallback] ? TERRAIN_IMAGES[defaultFallback] : atacamaImg;
 }

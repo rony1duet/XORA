@@ -388,6 +388,7 @@ export const VERIFIED_DATASETS: VerifiedDataset[] = [
     coverage: 'Global terrestrial coverage with real-time PostGIS/BigQuery SQL API',
     acquisitionDate: 'Live Active API Connection',
     license: 'Open Web GIS Protocol / Cloud Native DW API',
+    accessMethod: 'Direct REST SQL API via BigQuery endpoint & local geodetic engine fallback',
     officialUrl: 'https://carto.com/',
     limitations: 'Queries execute directly on cloud BigQuery data warehouse with API quota.',
     relevanceToAnalog:

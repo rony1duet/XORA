@@ -16,6 +16,7 @@ import { EARTH_ANALOG_CANDIDATES } from '../data/earthAnalogs';
 import { MISSION_ACTIVITY_WEIGHTS, calculateSiteSimilarity } from '../services/similarityEngine';
 import { searchAnalogsRemote, ApiSearchResultItem, TARGET_KEY_MAP } from '../services/analogApiService';
 import { SplitWorldScrubber } from '../components/SplitWorldScrubber';
+import { LiveVisualComparator } from '../components/LiveVisualComparator';
 import { HandicapLedger } from '../components/HandicapLedger';
 import { SimilarityFingerprint } from '../components/SimilarityFingerprint';
 import { EarthCandidateSite, PlanetaryReferenceSite, MissionActivity } from '../types/analog';
@@ -279,19 +280,16 @@ export const CompareView: React.FC<CompareViewProps> = ({
         </div>
       </div>
 
-      {/* Main Feature: Precision Split-World Scrubber */}
+      {/* Main Feature: Live Multi-Mode Visual Comparator Studio */}
       <section className="space-y-3">
-        <div className="flex items-center justify-between text-xs text-slate-400 px-1">
-          <div className="flex items-center gap-2">
-            <SlidersHorizontal className="w-4 h-4 text-cyan-400" />
-            <span className="font-semibold text-white">Interactive 1:1 Elevation &amp; Surface Scrubber</span>
-          </div>
-          <span className="font-mono text-[11px] text-slate-400 hidden sm:inline">
-            Drag divider left or right to inspect terrain alignment
-          </span>
-        </div>
-
-        <SplitWorldScrubber reference={reference} earth={earth} />
+        <LiveVisualComparator
+          selectedEarthSite={earth}
+          activeTarget={reference}
+          allTargets={references}
+          onSelectTarget={(newRef) => setSelectedRefId(newRef.id)}
+          isModal={false}
+          isOpen={true}
+        />
       </section>
 
       {/* Quantitative Analysis & Fingerprint Grid */}
