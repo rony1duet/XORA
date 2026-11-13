@@ -46,28 +46,26 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  // Probe teammate's live API on mount and hydrate 50 global analog sites
+  // Probe teammate's live API on mount and hydrate 50 global analog sites in parallel
   useEffect(() => {
     let isCancelled = false;
 
     const hydrateFromApi = async () => {
       try {
-        const health = await testApiConnection();
+        const [apiSites, apiTargets, health] = await Promise.all([
+          fetchApiSites(),
+          fetchApiTargets(),
+          testApiConnection(),
+        ]);
+
         if (isCancelled) return;
         setIsApiLive(health.connected);
 
-        if (health.connected) {
-          const [apiSites, apiTargets] = await Promise.all([
-            fetchApiSites(),
-            fetchApiTargets(),
-          ]);
-
-          if (!isCancelled && apiSites.length > 0) {
-            setSites(apiSites);
-          }
-          if (!isCancelled && apiTargets.length > 0) {
-            setReferences(apiTargets);
-          }
+        if (apiSites && apiSites.length > 0) {
+          setSites(apiSites);
+        }
+        if (apiTargets && apiTargets.length > 0) {
+          setReferences(apiTargets);
         }
       } catch (err) {
         console.warn('API hydration deferred, active on local planetary baselines:', err);

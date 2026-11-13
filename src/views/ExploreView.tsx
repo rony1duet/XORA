@@ -475,10 +475,10 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                   setLiveCompareCustomPoint(null);
                   setIsLiveCompareOpen(true);
                 }}
-                className="w-full py-2.5 px-4 text-xs font-bold text-slate-950 bg-gradient-to-r from-cyan-400 via-teal-300 to-cyan-300 hover:from-cyan-300 hover:to-teal-200 rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-cyan-500/25 active:scale-[0.99]"
+                className="w-full py-3 px-4 text-xs font-black uppercase tracking-wider text-slate-950 bg-gradient-to-r from-cyan-400 via-teal-300 to-cyan-300 hover:from-cyan-300 hover:to-teal-200 rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-cyan-500/25 active:scale-[0.99]"
               >
-                <Eye className="w-4 h-4" />
-                <span>Live Visual Comparison: {selectedResult.site.name} vs {activeReference.name}</span>
+                <GitCompare className="w-4 h-4" />
+                <span>Compare: {selectedResult.site.name} vs {selectedBody === 'moon' ? 'Moon' : 'Mars'}</span>
               </button>
 
               <button

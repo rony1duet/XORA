@@ -428,6 +428,18 @@ export async function fetchApiSites(): Promise<EarthCandidateSite[]> {
     return cachedApiSites;
   }
 
+  // Check persistent session cache for 0ms instant response
+  try {
+    const sessionData = sessionStorage.getItem('xora_cached_sites_v2');
+    if (sessionData) {
+      const parsed = JSON.parse(sessionData);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        cachedApiSites = parsed;
+        return parsed;
+      }
+    }
+  } catch (_) {}
+
   const baseUrl = getApiBaseUrl();
   const apiKey = getApiKey();
 
@@ -438,7 +450,7 @@ export async function fetchApiSites(): Promise<EarthCandidateSite[]> {
         Accept: 'application/json',
         'X-Api-Key': apiKey,
       },
-      signal: AbortSignal.timeout(6000),
+      signal: AbortSignal.timeout(3500),
     });
 
     if (res.ok) {
@@ -446,11 +458,14 @@ export async function fetchApiSites(): Promise<EarthCandidateSite[]> {
       if (Array.isArray(data.sites) && data.sites.length > 0) {
         const mapped = data.sites.map(mapApiSiteToEarthCandidate);
         cachedApiSites = mapped;
+        try {
+          sessionStorage.setItem('xora_cached_sites_v2', JSON.stringify(mapped));
+        } catch (_) {}
         return mapped;
       }
     }
   } catch (err) {
-    console.warn('Live API sites fetch failed, using local candidate baseline:', err);
+    console.warn('Live API sites fetch deferred, active on local planetary baselines:', err);
   }
 
   // Graceful fallback to verified built-in dataset
@@ -465,6 +480,18 @@ export async function fetchApiTargets(): Promise<PlanetaryReferenceSite[]> {
     return cachedApiTargets;
   }
 
+  // Check persistent session cache for 0ms instant response
+  try {
+    const sessionData = sessionStorage.getItem('xora_cached_targets_v2');
+    if (sessionData) {
+      const parsed = JSON.parse(sessionData);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        cachedApiTargets = parsed;
+        return parsed;
+      }
+    }
+  } catch (_) {}
+
   const baseUrl = getApiBaseUrl();
   const apiKey = getApiKey();
 
@@ -475,7 +502,7 @@ export async function fetchApiTargets(): Promise<PlanetaryReferenceSite[]> {
         Accept: 'application/json',
         'X-Api-Key': apiKey,
       },
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(3500),
     });
 
     if (res.ok) {
@@ -483,11 +510,14 @@ export async function fetchApiTargets(): Promise<PlanetaryReferenceSite[]> {
       if (Array.isArray(data.targets) && data.targets.length > 0) {
         const mapped = data.targets.map(mapApiTargetToPlanetaryReference);
         cachedApiTargets = mapped;
+        try {
+          sessionStorage.setItem('xora_cached_targets_v2', JSON.stringify(mapped));
+        } catch (_) {}
         return mapped;
       }
     }
   } catch (err) {
-    console.warn('Live API targets fetch failed, using local reference baseline:', err);
+    console.warn('Live API targets fetch deferred, active on local reference baseline:', err);
   }
 
   return PLANETARY_REFERENCES;
@@ -513,6 +543,18 @@ export async function searchAnalogsRemote(options: {
     return searchCache.get(cacheKey)!;
   }
 
+  // Check persistent session cache for 0ms instant ML ranking
+  try {
+    const sessionData = sessionStorage.getItem(`xora_search_${cacheKey}`);
+    if (sessionData) {
+      const parsed = JSON.parse(sessionData);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        searchCache.set(cacheKey, parsed);
+        return parsed;
+      }
+    }
+  } catch (_) {}
+
   try {
     let res: Response;
 
@@ -530,7 +572,7 @@ export async function searchAnalogsRemote(options: {
           top,
           filter: country || tag ? { country, tag } : undefined,
         }),
-        signal: AbortSignal.timeout(6000),
+        signal: AbortSignal.timeout(3500),
       });
     } else {
       // GET search with target key
@@ -547,7 +589,7 @@ export async function searchAnalogsRemote(options: {
           Accept: 'application/json',
           'X-Api-Key': apiKey,
         },
-        signal: AbortSignal.timeout(6000),
+        signal: AbortSignal.timeout(3500),
       });
     }
 
@@ -555,11 +597,14 @@ export async function searchAnalogsRemote(options: {
       const data = await res.json();
       if (Array.isArray(data.results)) {
         searchCache.set(cacheKey, data.results);
+        try {
+          sessionStorage.setItem(`xora_search_${cacheKey}`, JSON.stringify(data.results));
+        } catch (_) {}
         return data.results;
       }
     }
   } catch (err) {
-    console.warn('Remote search failed, fallback will compute client-side:', err);
+    console.warn('Remote search deferred, using client-side geodetic scoring:', err);
   }
 
   return [];

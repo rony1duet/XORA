@@ -563,9 +563,11 @@ export const RankingsView: React.FC<RankingsViewProps> = ({
                                 earth: result.site.id,
                               })
                             }
-                            className="px-2.5 py-1 rounded-full bg-slate-800/80 hover:bg-cyan-500/20 hover:text-cyan-300 hover:border-cyan-500/40 text-slate-200 border border-slate-700/60 font-semibold text-[11px] transition-all cursor-pointer"
+                            className="px-2.5 py-1 rounded-full bg-cyan-950/80 hover:bg-cyan-900 border border-cyan-800/60 hover:border-cyan-500 text-cyan-200 font-semibold text-[11px] transition-all flex items-center gap-1 cursor-pointer"
+                            title={`Compare ${result.site.name} vs ${activeReference.name}`}
                           >
-                            Compare
+                            <GitCompare className="w-3 h-3 text-cyan-400" />
+                            <span>Compare</span>
                           </button>
                           <button
                             onClick={() =>

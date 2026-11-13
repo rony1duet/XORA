@@ -22,13 +22,32 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { id: 'explore', label: 'Explore Atlas', icon: Compass },
-    { id: 'compare', label: 'Compare', icon: GitCompare },
-    { id: 'rankings', label: 'Rankings', icon: BarChart3 },
+    { 
+      id: 'explore', 
+      label: 'Explore Map & Sites', 
+      badge: 'Atlas',
+      icon: Compass,
+      desc: 'Browse 50+ global analog sites on live interactive maps'
+    },
+    { 
+      id: 'compare', 
+      label: 'Earth vs. Moon / Mars', 
+      badge: 'Live Studio',
+      isHighlight: true,
+      icon: GitCompare,
+      desc: 'Direct side-by-side live maps, bar charts & 3D launchers'
+    },
+    { 
+      id: 'rankings', 
+      label: 'Twin Leaderboard', 
+      badge: 'NASA Scores',
+      icon: BarChart3,
+      desc: 'Rankings and fidelity metrics against NASA LOLA / MOLA'
+    },
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-[#07090E]/80 backdrop-blur-xl border-b border-slate-800/80 transition-all">
+    <header className="sticky top-0 z-50 w-full bg-[#07090E]/85 backdrop-blur-xl border-b border-slate-800/80 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         {/* Left: Brand Wordmark */}
         <button
@@ -46,14 +65,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="text-xl font-black tracking-widest text-white uppercase font-sans">
               XORA
             </span>
-            <span className="hidden sm:inline-block text-[10px] font-mono tracking-widest text-slate-400 border-l border-slate-800 pl-2 uppercase">
-              Terrain Atlas
+            <span className="hidden sm:inline-block text-[10px] font-mono tracking-widest text-cyan-400/80 border-l border-slate-800 pl-2 uppercase font-semibold">
+              Earth ⟷ Moon · Mars
             </span>
           </div>
         </button>
 
         {/* Right: Floating Glass Capsule Navigation & Mobile Toggle */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <nav className="hidden md:flex items-center p-1 rounded-full bg-[#0D131F]/90 border border-slate-800/80 shadow-inner">
             {navLinks.map((link) => {
               const isActive = currentRoute === link.id;
@@ -61,17 +80,35 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={link.id}
                   onClick={() => navigate(link.id)}
-                  className={`relative px-4 py-1.5 text-xs font-medium rounded-full transition-all duration-150 cursor-pointer ${
+                  className={`relative px-4 py-1.5 text-xs rounded-full transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
                     isActive
-                      ? 'bg-cyan-500/20 text-cyan-300 font-semibold shadow-sm border border-cyan-500/30'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800/40'
+                      ? 'bg-cyan-500/25 text-cyan-200 font-bold shadow-sm border border-cyan-400/50'
+                      : link.isHighlight
+                      ? 'text-cyan-300 font-medium hover:text-white hover:bg-cyan-950/40'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800/40'
                   }`}
                 >
-                  {link.label}
+                  <link.icon className="w-3.5 h-3.5" />
+                  <span>{link.label}</span>
+                  {link.isHighlight && !isActive && (
+                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300">
+                      VS
+                    </span>
+                  )}
                 </button>
               );
             })}
           </nav>
+
+          {/* Quick Head-to-Head Compare Launcher Button (Desktop) */}
+          <button
+            onClick={() => navigate('compare')}
+            className="hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-emerald-950/80 via-cyan-950/80 to-amber-950/80 border border-cyan-500/40 hover:border-cyan-400 text-xs font-semibold text-cyan-200 hover:text-white shadow-sm hover:scale-[1.02] transition-all cursor-pointer"
+            title="Launch Earth vs Moon/Mars Proving Ground Studio"
+          >
+            <GitCompare className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Compare Now</span>
+          </button>
 
           {/* Mobile Menu Toggle Button */}
           <div className="md:hidden flex items-center">
@@ -86,9 +123,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Drawer with Rich Descriptive Cards */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-800 bg-[#080C16]/95 backdrop-blur-2xl px-4 py-4 space-y-2">
+        <div className="md:hidden border-t border-slate-800 bg-[#080C16]/98 backdrop-blur-2xl px-4 py-4 space-y-2.5">
+          <div className="text-[10px] font-mono text-slate-400 uppercase tracking-widest px-1">
+            Navigation Menu
+          </div>
           {navLinks.map((link) => {
             const Icon = link.icon;
             const isActive = currentRoute === link.id;
@@ -99,19 +139,24 @@ export const Navbar: React.FC<NavbarProps> = ({
                   navigate(link.id);
                   setMobileMenuOpen(false);
                 }}
-                className={`w-full flex items-center justify-between px-4 py-3 text-sm rounded-xl transition-all cursor-pointer ${
+                className={`w-full text-left p-3.5 rounded-xl transition-all cursor-pointer border ${
                   isActive
-                    ? 'bg-cyan-950/60 text-cyan-300 font-semibold border border-cyan-800/50'
-                    : 'text-slate-300 hover:bg-slate-800/50 hover:text-white'
+                    ? 'bg-cyan-950/70 text-cyan-200 border-cyan-500/60 shadow'
+                    : 'bg-[#0E1524]/60 border-slate-800/80 text-slate-300 hover:bg-slate-800/50 hover:text-white'
                 }`}
               >
-                <div className="flex items-center gap-3">
-                  <Icon className="w-4 h-4 text-cyan-400" />
-                  <span>{link.label}</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <Icon className="w-4 h-4 text-cyan-400" />
+                    <span className="font-bold text-sm text-white">{link.label}</span>
+                  </div>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-cyan-300 border border-slate-700">
+                    {link.badge}
+                  </span>
                 </div>
-                {isActive && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
-                )}
+                <p className="text-[11px] text-slate-400 font-light mt-1.5 pl-6">
+                  {link.desc}
+                </p>
               </button>
             );
           })}

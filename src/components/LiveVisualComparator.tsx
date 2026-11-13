@@ -633,6 +633,43 @@ export const LiveVisualComparator: React.FC<LiveVisualComparatorProps> = ({
         )}
       </div>
 
+      {/* 3.5 Quick Plain-English Explanation Banner */}
+      <div className="px-4 py-2 bg-[#080C16] border-b border-[#141C2B] flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-300">
+        <div className="flex items-center gap-2">
+          <Info className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+          <span>
+            {visualMode === 'sideBySide' && (
+              <>
+                <strong>Dual Live Map Mode:</strong> Left is <strong>{selectedEarthSite.name} (Earth)</strong> in satellite view. Right is <strong>{target.name} ({target.body === 'moon' ? 'Moon' : 'Mars'})</strong> in orbital USGS/NASA view. Drag or zoom either map to explore!
+              </>
+            )}
+            {visualMode === 'charts' && (
+              <>
+                <strong>Metric Bar Charts Mode:</strong> Quantitative comparisons for elevation relief, slopes, roughness, thermal swings, surface gravity, and atmospheric pressure.
+              </>
+            )}
+            {visualMode === 'split' && (
+              <>
+                <strong>Split Slider Mode:</strong> Drag the central cyan bar left or right to peel back the Moon/Mars terrain and reveal the Earth analog twin directly underneath.
+              </>
+            )}
+            {visualMode === 'elevation' && (
+              <>
+                <strong>25km Transect Profile Mode:</strong> Standardized cross-sectional elevation slice plotted across both terrains to inspect slope contours and craters.
+              </>
+            )}
+            {visualMode === 'environment' && (
+              <>
+                <strong>Reality Check Ledger:</strong> Physical boundaries where Earth conditions diverge from space (atmospheric pressure, vacuum, radiation, and gravity).
+              </>
+            )}
+          </span>
+        </div>
+        <div className="text-[10px] font-mono text-cyan-400 hidden sm:block">
+          Target: {target.body === 'moon' ? 'Lunar Surface (1.62 m/s²)' : 'Martian Surface (3.71 m/s²)'}
+        </div>
+      </div>
+
       {/* 4. Visual Stage Area */}
       <div className="relative bg-[#05070B] overflow-hidden select-none min-h-[460px]">
         {/* MODE 1: DUAL LIVE INTERACTIVE MAPS (EARTH MAP & PLANETARY MAP) */}

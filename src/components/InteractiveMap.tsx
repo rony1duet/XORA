@@ -78,7 +78,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const markersRef = useRef<{ [id: string]: L.Marker }>({});
   const bufferLayerRef = useRef<L.GeoJSON | null>(null);
   const customProbeMarkerRef = useRef<L.Marker | null>(null);
-  const cachedBuffersRef = useRef<any>(null);
+  const bufferCacheRef = useRef<Map<string, any>>(new Map());
   const prevSelectedSiteIdRef = useRef<string>(selectedSiteId);
 
   const [basemap, setBasemap] = useState<BasemapStyle>('dark');
@@ -368,7 +368,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         markersRef.current[selectedSiteId].setIcon(createMarkerIcon(color, true));
 
         map.flyTo([currSite.coordinates.lat, currSite.coordinates.lng], 5, {
-          duration: 0.9,
+          duration: 0.45,
         });
 
         markersRef.current[selectedSiteId].openPopup();
@@ -392,7 +392,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     }
   }, [selectedSiteId, visibleSites]);
 
-  // 3. CARTO BigQuery Buffers Fetch & Mount (Cached once)
+  // 3. CARTO BigQuery Buffers Fetch & Mount (Cached for 0ms instant display)
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -432,6 +432,12 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     };
 
     if (visibleSites.length > 0) {
+      const cacheKey = visibleSites.map((s) => s.id).join(',');
+      if (bufferCacheRef.current.has(cacheKey)) {
+        applyGeoJson(bufferCacheRef.current.get(cacheKey));
+        return;
+      }
+
       setLoadingBuffers(true);
       fetchCartoSiteBuffers(
         visibleSites.map((s) => ({
@@ -442,6 +448,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         }))
       )
         .then((geojson) => {
+          bufferCacheRef.current.set(cacheKey, geojson);
           if (mapInstanceRef.current && showCartoBuffers) {
             applyGeoJson(geojson);
           }
@@ -453,7 +460,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           setLoadingBuffers(false);
         });
     }
-  }, [showCartoBuffers, visibleSites, selectedSiteId]);
+  }, [showCartoBuffers, visibleSites]);
 
   // Navigation Helpers
   const handleZoomIn = () => mapInstanceRef.current?.zoomIn();

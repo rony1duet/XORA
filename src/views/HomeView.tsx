@@ -9,7 +9,7 @@
 
 import React from 'react';
 import { CelestialHero3D } from '../components/CelestialHero3D';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, GitCompare, Compass, Sparkles, MapPin, Layers, Globe } from 'lucide-react';
 
 interface HomeViewProps {
   onNavigate: (route: string, params?: Record<string, string>) => void;
@@ -25,7 +25,78 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate }) => {
       />
 
       {/* Main Editorial Content Stream */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-24 space-y-28">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 space-y-20">
+
+        {/* 1.5 Quick Start Action Bar: Crystal Clear Navigation */}
+        <section className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#0C1222] via-[#0E162B] to-[#0A101D] border border-cyan-500/30 shadow-2xl space-y-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="space-y-2 max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-800/60 font-mono text-[11px] text-cyan-300">
+                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Planetary Proving Ground Studio</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                Earth is Humanity&apos;s Proving Ground for the Moon &amp; Mars
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-300 font-light leading-relaxed">
+                Before rovers fly to Mars or astronauts touch down on the Moon, mission teams test rover wheels, robotic drills, and autonomous hazard cameras across Earth&apos;s most extreme deserts, craters, and volcanic lava tubes.
+              </p>
+            </div>
+
+            {/* Two Primary Action Buttons */}
+            <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
+              <button
+                onClick={() => onNavigate('compare')}
+                className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 text-slate-950 font-bold text-xs sm:text-sm transition-all shadow-[0_0_20px_rgba(34,211,238,0.35)] hover:scale-[1.02] flex items-center justify-center gap-2.5 cursor-pointer"
+              >
+                <GitCompare className="w-4 h-4" />
+                <span>Launch Earth vs Moon/Mars Studio</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => onNavigate('explore')}
+                className="px-6 py-3.5 rounded-xl bg-[#121828] hover:bg-slate-800 border border-slate-700/80 text-white font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2.5 cursor-pointer"
+              >
+                <Compass className="w-4 h-4 text-cyan-400" />
+                <span>Explore Global Analog Map</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 3 Simple Steps For Everyone to Understand */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-800/80 text-xs">
+            <div className="p-4 rounded-2xl bg-[#090D18]/80 border border-slate-800/60 space-y-1.5">
+              <div className="flex items-center gap-2 text-cyan-400 font-mono text-[11px] font-bold">
+                <span className="w-5 h-5 rounded-full bg-cyan-950 border border-cyan-800 flex items-center justify-center">1</span>
+                <span>Choose a Planetary Target</span>
+              </div>
+              <p className="text-slate-300 font-light leading-relaxed text-[11px]">
+                Select Moon landing candidates (e.g. <strong>Shackleton Rim</strong>) or Mars rover sites (e.g. <strong>Jezero Crater</strong>).
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#090D18]/80 border border-slate-800/60 space-y-1.5">
+              <div className="flex items-center gap-2 text-emerald-400 font-mono text-[11px] font-bold">
+                <span className="w-5 h-5 rounded-full bg-emerald-950 border border-emerald-800 flex items-center justify-center">2</span>
+                <span>Discover Earth Twins</span>
+              </div>
+              <p className="text-slate-300 font-light leading-relaxed text-[11px]">
+                Our multi-metric engine cross-references slopes, roughness, and geology across 50 global Earth analog test sites.
+              </p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#090D18]/80 border border-slate-800/60 space-y-1.5">
+              <div className="flex items-center gap-2 text-amber-400 font-mono text-[11px] font-bold">
+                <span className="w-5 h-5 rounded-full bg-amber-950 border border-amber-800 flex items-center justify-center">3</span>
+                <span>Compare Side-by-Side</span>
+              </div>
+              <p className="text-slate-300 font-light leading-relaxed text-[11px]">
+                Inspect live interactive maps, quantitative bar charts, split-world scrubbers, and launch Google Earth &amp; NASA Trek 3D!
+              </p>
+            </div>
+          </div>
+        </section>
         
         {/* 2. Planetary Twin Spotlights: 3 Calibrated Proving Ground Pairs */}
         <section className="space-y-8">
