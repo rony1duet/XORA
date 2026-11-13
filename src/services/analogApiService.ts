@@ -100,6 +100,29 @@ export const REVERSE_TARGET_MAP: Record<string, string> = {
   moon_hadley: 'lunar-taurus-littrow',
 };
 
+// Precise Scientific Georeference Coordinates for Moon & Mars Target Bodies
+export const TARGET_COORDINATES_LOOKUP: Record<string, { lat: number; lng: number }> = {
+  // Moon targets
+  moon_south_pole: { lat: -84.0, lng: 0.0 }, // Clamped south polar ridge for Web Mercator view
+  'lunar-shackleton-rim': { lat: -84.0, lng: 0.0 },
+  moon_maria: { lat: 8.33, lng: 33.22 }, // Mare Tranquillitatis equatorial basalt plains
+  'lunar-mare-tranquillitatis': { lat: 8.33, lng: 33.22 },
+  moon_marius: { lat: 14.08, lng: -56.78 }, // Marius Hills volcanic skylight
+  'lunar-tranquillitatis-pit': { lat: 8.33, lng: 33.22 },
+  moon_hadley: { lat: 26.13, lng: 3.63 }, // Hadley-Apennine Apollo 15 scarp
+  'lunar-taurus-littrow': { lat: 20.19, lng: 30.77 },
+
+  // Mars targets
+  mars_jezero: { lat: 18.38, lng: 77.58 }, // Jezero Delta
+  'mars-jezero-crater': { lat: 18.38, lng: 77.58 },
+  mars_gale: { lat: -5.38, lng: 137.44 }, // Gale Crater / Mt. Sharp
+  'mars-gale-crater': { lat: -5.38, lng: 137.44 },
+  mars_utopia: { lat: 47.97, lng: 109.9 }, // Utopia Planitia permafrost
+  'mars-oxia-planum': { lat: 18.27, lng: 335.37 },
+  mars_pavonis_skylight: { lat: 0.08, lng: -113.25 }, // Pavonis Mons flank cave skylight
+  'pavonis-skylight': { lat: 0.08, lng: -113.25 },
+};
+
 // API Schema Types
 export interface ApiSite {
   key: string;
@@ -373,11 +396,15 @@ export function mapApiTargetToPlanetaryReference(apiTarget: ApiTarget): Planetar
     };
   });
 
+  const resolvedCoords =
+    TARGET_COORDINATES_LOOKUP[apiTarget.key] ||
+    (isMoon ? { lat: -84.0, lng: 0.0 } : { lat: 18.38, lng: 77.58 });
+
   return {
     id: apiTarget.key,
     name: apiTarget.name,
     body: isMoon ? 'moon' : 'mars',
-    coordinates: isMoon ? { lat: -89.9, lng: 0.0 } : { lat: 18.38, lng: 77.58 },
+    coordinates: resolvedCoords,
     elevationDatum: isMoon ? 'LOLA 1737.4 km Sphere' : 'MOLA Areoid (3396.0 km)',
     geologicalContext: apiTarget.overview || 'Planetary reference region for landing and surface exploration.',
     missionContext: apiTarget.sources || 'NASA / International Space Agency missions.',
@@ -482,7 +509,7 @@ export async function fetchApiTargets(): Promise<PlanetaryReferenceSite[]> {
 
   // Check persistent session cache for 0ms instant response
   try {
-    const sessionData = sessionStorage.getItem('xora_cached_targets_v2');
+    const sessionData = sessionStorage.getItem('xora_cached_targets_v3');
     if (sessionData) {
       const parsed = JSON.parse(sessionData);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -511,7 +538,7 @@ export async function fetchApiTargets(): Promise<PlanetaryReferenceSite[]> {
         const mapped = data.targets.map(mapApiTargetToPlanetaryReference);
         cachedApiTargets = mapped;
         try {
-          sessionStorage.setItem('xora_cached_targets_v2', JSON.stringify(mapped));
+          sessionStorage.setItem('xora_cached_targets_v3', JSON.stringify(mapped));
         } catch (_) {}
         return mapped;
       }

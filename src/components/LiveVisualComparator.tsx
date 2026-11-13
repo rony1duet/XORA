@@ -291,16 +291,20 @@ export const LiveVisualComparator: React.FC<LiveVisualComparatorProps> = ({
       delete (targetEl as any)._leaflet_id;
     }
 
-    const { lat, lng } = target.coordinates;
     const isMoon = target.body === 'moon';
+    // Clamp latitude to safe Web Mercator range [-83.5, 83.5] to prevent Leaflet projection overflows at polar targets
+    const safeLat = Math.max(-83.5, Math.min(83.5, target.coordinates.lat));
+    const safeLng = target.coordinates.lng;
 
     const map = L.map(targetEl, {
-      center: [lat, lng],
+      center: [safeLat, safeLng],
       zoom: 3,
       minZoom: 1,
       maxZoom: 7,
       zoomControl: false,
       attributionControl: false,
+      maxBounds: [[-85, -180], [85, 180]],
+      maxBoundsViscosity: 0.8,
     });
 
     // Real OpenPlanetary / USGS Astrogeology Planetary Tile Layers (Verified HTTP 200 OK)
@@ -312,6 +316,8 @@ export const LiveVisualComparator: React.FC<LiveVisualComparatorProps> = ({
       maxZoom: 7,
       minZoom: 1,
       attribution: isMoon ? 'USGS / NASA LRO LOLA' : 'USGS / NASA Mars Viking MDIM',
+      noWrap: false,
+      bounds: [[-85, -180], [85, 180]],
     }).addTo(map);
     targetTileLayerRef.current = tileLayer;
 
@@ -328,7 +334,7 @@ export const LiveVisualComparator: React.FC<LiveVisualComparatorProps> = ({
       iconSize: [42, 42],
       iconAnchor: [21, 21],
     });
-    L.marker([lat, lng], { icon: targetIcon }).addTo(map);
+    L.marker([safeLat, safeLng], { icon: targetIcon }).addTo(map);
 
     targetMapInstanceRef.current = map;
 
@@ -414,13 +420,18 @@ export const LiveVisualComparator: React.FC<LiveVisualComparatorProps> = ({
       }
 
       const isMoon = target.body === 'moon';
+      const safeLat = Math.max(-83.5, Math.min(83.5, target.coordinates.lat));
+      const safeLng = target.coordinates.lng;
+
       const targetMap = L.map(targetEl, {
-        center: [target.coordinates.lat, target.coordinates.lng],
+        center: [safeLat, safeLng],
         zoom: 3,
         minZoom: 1,
         maxZoom: 7,
         zoomControl: false,
         attributionControl: false,
+        maxBounds: [[-85, -180], [85, 180]],
+        maxBoundsViscosity: 0.8,
       });
 
       const planetaryTileUrl = isMoon
@@ -431,6 +442,8 @@ export const LiveVisualComparator: React.FC<LiveVisualComparatorProps> = ({
         maxZoom: 7,
         minZoom: 1,
         attribution: isMoon ? 'USGS / NASA LRO LOLA' : 'USGS / NASA Mars Viking MDIM',
+        noWrap: false,
+        bounds: [[-85, -180], [85, 180]],
       }).addTo(targetMap);
 
       const targetColor = isMoon ? '#22D3EE' : '#FB923C';
@@ -445,7 +458,7 @@ export const LiveVisualComparator: React.FC<LiveVisualComparatorProps> = ({
         iconSize: [42, 42],
         iconAnchor: [21, 21],
       });
-      L.marker([target.coordinates.lat, target.coordinates.lng], { icon: targetCrosshair }).addTo(targetMap);
+      L.marker([safeLat, safeLng], { icon: targetCrosshair }).addTo(targetMap);
       splitTargetMapInstanceRef.current = targetMap;
     }
 
@@ -503,7 +516,10 @@ export const LiveVisualComparator: React.FC<LiveVisualComparatorProps> = ({
   const nasaTrekUrl = useMemo(() => {
     const { lat, lng } = target.coordinates;
     if (target.body === 'moon') {
-      return `https://trek.nasa.gov/moon/#v=0.1&x=${lng.toFixed(4)}&y=${lat.toFixed(4)}&z=6&p=urn%3Aogc%3Adef%3Acrs%3AEPSG%3A%3A104903`;
+      if (lat < -65) {
+        return `https://trek.nasa.gov/moon/#v=0.1&x=${lng.toFixed(4)}&y=${lat.toFixed(4)}&z=6&p=urn%3Aogc%3Adef%3Acrs%3AEPSG%3A%3A104903`;
+      }
+      return `https://trek.nasa.gov/moon/#v=0.1&x=${lng.toFixed(4)}&y=${lat.toFixed(4)}&z=5`;
     }
     return `https://trek.nasa.gov/mars/#v=0.1&x=${lng.toFixed(4)}&y=${lat.toFixed(4)}&z=5&p=urn%3Aogc%3Adef%3Acrs%3AEPSG%3A%3A104905`;
   }, [target]);
@@ -896,7 +912,8 @@ export const LiveVisualComparator: React.FC<LiveVisualComparatorProps> = ({
                 </button>
                 <button
                   onClick={() => {
-                    targetMapInstanceRef.current?.flyTo([target.coordinates.lat, target.coordinates.lng], 3);
+                    const safeLat = Math.max(-83.5, Math.min(83.5, target.coordinates.lat));
+                    targetMapInstanceRef.current?.flyTo([safeLat, target.coordinates.lng], 3);
                   }}
                   className={`w-7 h-7 rounded bg-[#090D18]/90 hover:bg-slate-800 border border-slate-700 flex items-center justify-center text-xs cursor-pointer ${
                     target.body === 'moon' ? 'text-cyan-400' : 'text-amber-400'
