@@ -23,11 +23,22 @@ import basaltImg from '../assets/images/volcanic_basalt_terrain_1791614313177.jp
 
 export const TERRAIN_IMAGES: Record<string, string> = {
   // Planetary Reference Sites
+  // Planetary Reference Sites (Canonical IDs & Aliases)
   'lunar-shackleton-rim': shackletonImg,
+  'shackleton-rim': shackletonImg,
+  'lunar-taurus-littrow': lunarMareImg,
+  'taurus-littrow': lunarMareImg,
+  'lunar-tranquillitatis-pit': mariusHillsImg,
+  'tranquillitatis-pit': mariusHillsImg,
   'lunar-marius-hills': mariusHillsImg,
   'lunar-oceanus-procellarum': oceanusProcellarumImg,
   'mars-jezero-crater': jezeroImg,
+  'jezero-crater': jezeroImg,
+  'mars-gale-crater': galeMountSharpImg,
   'mars-gale-mount-sharp': galeMountSharpImg,
+  'gale-mount-sharp': galeMountSharpImg,
+  'mars-oxia-planum': vallesMarinerisImg,
+  'oxia-planum': vallesMarinerisImg,
   'mars-valles-marineris': vallesMarinerisImg,
 
   // Terrestrial Analog Sites (full and canonical IDs)

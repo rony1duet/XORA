@@ -10,12 +10,20 @@ import { ExploreView } from './views/ExploreView';
 import { CompareView } from './views/CompareView';
 import { SiteProfileView } from './views/SiteProfileView';
 import { RankingsView } from './views/RankingsView';
-import { CelestialBody } from './types/analog';
+import { EarthCandidateSite, PlanetaryReferenceSite, CelestialBody } from './types/analog';
+import { EARTH_ANALOG_CANDIDATES } from './data/earthAnalogs';
+import { PLANETARY_REFERENCES } from './data/planetaryReferences';
+import { fetchApiSites, fetchApiTargets, testApiConnection } from './services/analogApiService';
+import { ApiHubModal } from './components/ApiHubModal';
 
 export default function App() {
   const [currentRoute, setCurrentRoute] = useState<string>('home');
   const [routeParams, setRouteParams] = useState<Record<string, string>>({});
   const [shortlist, setShortlist] = useState<string[]>(['atacama-yungay', 'haughton-crater']);
+  const [sites, setSites] = useState<EarthCandidateSite[]>(EARTH_ANALOG_CANDIDATES);
+  const [references, setReferences] = useState<PlanetaryReferenceSite[]>(PLANETARY_REFERENCES);
+  const [isApiLive, setIsApiLive] = useState<boolean>(false);
+  const [isApiHubOpen, setIsApiHubOpen] = useState<boolean>(false);
 
   // Synchronize state with URL hash on mount & hash changes
   useEffect(() => {
@@ -40,6 +48,40 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  // Probe teammate's live API on mount and hydrate 50 global analog sites
+  useEffect(() => {
+    let isCancelled = false;
+
+    const hydrateFromApi = async () => {
+      try {
+        const health = await testApiConnection();
+        if (isCancelled) return;
+        setIsApiLive(health.connected);
+
+        if (health.connected) {
+          const [apiSites, apiTargets] = await Promise.all([
+            fetchApiSites(),
+            fetchApiTargets(),
+          ]);
+
+          if (!isCancelled && apiSites.length > 0) {
+            setSites(apiSites);
+          }
+          if (!isCancelled && apiTargets.length > 0) {
+            setReferences(apiTargets);
+          }
+        }
+      } catch (err) {
+        console.warn('API hydration deferred, active on local planetary baselines:', err);
+      }
+    };
+
+    hydrateFromApi();
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
   // Navigation helper
   const navigate = (route: string, params?: Record<string, string>) => {
     let hash = `#${route}`;
@@ -59,8 +101,13 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#07090E] text-[#F8FAFC] font-sans antialiased selection:bg-cyan-500/20 selection:text-cyan-200">
-      {/* Clean Minimal Top Bar Navigation */}
-      <Navbar currentRoute={currentRoute} navigate={navigate} />
+      {/* Clean Minimal Top Bar Navigation with API Hub Button */}
+      <Navbar
+        currentRoute={currentRoute}
+        navigate={navigate}
+        onOpenApiHub={() => setIsApiHubOpen(true)}
+        isApiLive={isApiLive}
+      />
 
       {/* Main View Stage */}
       <main className="flex-1 w-full">
@@ -74,6 +121,8 @@ export default function App() {
             onNavigate={navigate}
             shortlist={shortlist}
             onToggleShortlist={toggleShortlist}
+            sites={sites}
+            references={references}
           />
         )}
 
@@ -82,6 +131,8 @@ export default function App() {
             initialRefId={routeParams.ref || 'mars-jezero-crater'}
             initialEarthId={routeParams.earth || 'atacama-yungay'}
             onNavigate={navigate}
+            sites={sites}
+            references={references}
           />
         )}
 
@@ -89,6 +140,7 @@ export default function App() {
           <SiteProfileView
             siteId={routeParams.id || 'atacama-yungay'}
             onNavigate={navigate}
+            sites={sites}
           />
         )}
 
@@ -97,9 +149,22 @@ export default function App() {
             onNavigate={navigate}
             shortlist={shortlist}
             onToggleShortlist={toggleShortlist}
+            sites={sites}
+            references={references}
           />
         )}
       </main>
+
+      {/* Teammate API Integration & Custom Match Modal */}
+      <ApiHubModal
+        isOpen={isApiHubOpen}
+        onClose={() => setIsApiHubOpen(false)}
+        onSitesUpdated={(newSites: EarthCandidateSite[], isRemote: boolean) => {
+          setSites(newSites);
+          setIsApiLive(isRemote);
+        }}
+        onViewTwin={(id: string) => navigate('sites', { id })}
+      />
 
       {/* Clean Minimal Simple Footer */}
       <footer className="border-t border-[#182030] bg-[#07090E] py-10 text-xs text-slate-400">

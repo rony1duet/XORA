@@ -7,21 +7,28 @@
 import React, { useState } from 'react';
 import { FeatureScoreBreakdown } from '../types/analog';
 import { Table, Eye } from 'lucide-react';
+import { ShimmerRadar } from './Shimmer';
 
 interface SimilarityFingerprintProps {
-  featureScores: Record<string, FeatureScoreBreakdown>;
+  featureScores?: Record<string, FeatureScoreBreakdown>;
   overallScore: number;
   size?: number;
   showTableToggle?: boolean;
+  isLoading?: boolean;
 }
 
 export const SimilarityFingerprint: React.FC<SimilarityFingerprintProps> = ({
-  featureScores,
+  featureScores = {},
   overallScore,
   size = 240,
   showTableToggle = true,
+  isLoading = false,
 }) => {
   const [viewMode, setViewMode] = useState<'glyph' | 'table'>('glyph');
+
+  if (isLoading) {
+    return <ShimmerRadar size={size} />;
+  }
 
   const axes = [
     { key: 'relief', label: 'Relief' },
@@ -39,7 +46,8 @@ export const SimilarityFingerprint: React.FC<SimilarityFingerprintProps> = ({
   // Compute radial polygon points
   const points = axes.map((axis, i) => {
     const angle = i * angleStep - Math.PI / 2;
-    const score = featureScores[axis.key]?.similarity ?? 0.5;
+    const rawScore = featureScores[axis.key]?.similarity ?? 0.5;
+    const score = isNaN(rawScore) ? 0.5 : Math.max(0.05, Math.min(1.0, rawScore));
     const r = radius * score;
     const x = center + r * Math.cos(angle);
     const y = center + r * Math.sin(angle);

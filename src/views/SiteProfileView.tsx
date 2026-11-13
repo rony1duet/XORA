@@ -6,6 +6,7 @@
 
 import React, { useMemo } from 'react';
 import { EARTH_ANALOG_CANDIDATES } from '../data/earthAnalogs';
+import { EarthCandidateSite } from '../types/analog';
 import { getTerrainImage } from '../data/terrainImages';
 import { EvidencePassport } from '../components/EvidencePassport';
 import { MissionRehearsalCards } from '../components/MissionRehearsalCards';
@@ -14,15 +15,22 @@ import { ArrowLeft, GitCompare, MapPin, Compass, History, ExternalLink } from 'l
 interface SiteProfileViewProps {
   siteId: string;
   onNavigate: (route: string, params?: Record<string, string>) => void;
+  sites?: EarthCandidateSite[];
 }
 
-export const SiteProfileView: React.FC<SiteProfileViewProps> = ({ siteId, onNavigate }) => {
+export const SiteProfileView: React.FC<SiteProfileViewProps> = ({
+  siteId,
+  onNavigate,
+  sites = EARTH_ANALOG_CANDIDATES,
+}) => {
   const site = useMemo(() => {
     return (
+      sites.find((s) => s.id === siteId || s.id.toLowerCase() === siteId.toLowerCase()) ||
       EARTH_ANALOG_CANDIDATES.find((s) => s.id === siteId) ||
+      sites[0] ||
       EARTH_ANALOG_CANDIDATES[0]
     );
-  }, [siteId]);
+  }, [sites, siteId]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">

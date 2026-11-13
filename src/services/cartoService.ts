@@ -27,9 +27,7 @@ const CARTO_BASE_URL =
   import.meta.env.VITE_CARTO_API_BASE_URL ||
   'https://gcp-asia-northeast1.api.carto.com';
 
-const CARTO_TOKEN =
-  import.meta.env.VITE_CARTO_ACCESS_TOKEN ||
-  'eyJhbGciOiJIUzI1NiJ9.eyJhIjoiYWNfYmQ3cGkwMnEiLCJqdGkiOiIxYmJlNmM1MjAxYTA1NzM2ZTgzZGE1NGJiNzgxNGExZiJ9.yAA2xNtiEW8qhBJ3RU6xPx8eyYyPwzK_Ba1PCGL3aAc';
+const CARTO_TOKEN = (import.meta.env.VITE_CARTO_ACCESS_TOKEN || '').trim();
 
 /**
  * Executes a live spatial query on CARTO Data Warehouse
@@ -37,6 +35,10 @@ const CARTO_TOKEN =
 export async function executeCartoSql<T = any>(
   sql: string
 ): Promise<CartoQueryResult<T>> {
+  if (!CARTO_TOKEN) {
+    throw new Error('CARTO API token is not configured. Falling back to local geodetic spatial calculations.');
+  }
+
   const startTime = performance.now();
   const url = `${CARTO_BASE_URL}/v3/sql/carto_dw/query?q=${encodeURIComponent(sql)}`;
 
@@ -116,11 +118,17 @@ export async function fetchCartoSiteBuffers(
   if (sites.length === 0) return { type: 'FeatureCollection', features: [] };
 
   try {
-    // Generate unioned query for all candidate sites
-    const unionQueries = sites.map(
-      (s) =>
-        `SELECT '${s.id}' as site_id, '${s.name.replace(/'/g, "\\'")}' as site_name, ST_ASGEOJSON(ST_BUFFER(ST_GEOGPOINT(${s.lng}, ${s.lat}), 25000)) as geojson`
-    );
+    // Generate unioned query for all candidate sites with strict parameter sanitization
+    const unionQueries = sites.map((s) => {
+      const safeId = String(s.id).replace(/[^a-zA-Z0-9\-_]/g, '');
+      const safeName = String(s.name).replace(/'/g, "''").replace(/[\r\n\0]/g, '');
+      const lat = Number(s.lat);
+      const lng = Number(s.lng);
+      if (isNaN(lat) || isNaN(lng)) return null;
+      return `SELECT '${safeId}' as site_id, '${safeName}' as site_name, ST_ASGEOJSON(ST_BUFFER(ST_GEOGPOINT(${lng}, ${lat}), 25000)) as geojson`;
+    }).filter(Boolean);
+
+    if (unionQueries.length === 0) return { type: 'FeatureCollection', features: [] };
 
     const fullSql = unionQueries.join(' UNION ALL ');
     const res = await executeCartoSql<{

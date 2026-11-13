@@ -10,26 +10,34 @@
  * - Comprehensive Handicap Ledger documenting physical environment boundaries
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { PLANETARY_REFERENCES } from '../data/planetaryReferences';
 import { EARTH_ANALOG_CANDIDATES } from '../data/earthAnalogs';
 import { MISSION_ACTIVITY_WEIGHTS, calculateSiteSimilarity } from '../services/similarityEngine';
+import { searchAnalogsRemote, ApiSearchResultItem, TARGET_KEY_MAP } from '../services/analogApiService';
 import { SplitWorldScrubber } from '../components/SplitWorldScrubber';
 import { HandicapLedger } from '../components/HandicapLedger';
 import { SimilarityFingerprint } from '../components/SimilarityFingerprint';
-import { MissionActivity } from '../types/analog';
+import { EarthCandidateSite, PlanetaryReferenceSite, MissionActivity } from '../types/analog';
 import { 
   ArrowLeft, 
   Sparkles, 
   ExternalLink,
   CheckCircle2,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Brain,
+  AlertTriangle,
+  Check,
+  ShieldAlert
 } from 'lucide-react';
+import { Shimmer, ShimmerMetricCard } from '../components/Shimmer';
 
 interface CompareViewProps {
   initialRefId?: string;
   initialEarthId?: string;
   onNavigate: (route: string, params?: Record<string, string>) => void;
+  sites?: EarthCandidateSite[];
+  references?: PlanetaryReferenceSite[];
 }
 
 // Preset signature proving ground baselines
@@ -68,18 +76,55 @@ export const CompareView: React.FC<CompareViewProps> = ({
   initialRefId = 'mars-jezero-crater',
   initialEarthId = 'atacama-yungay',
   onNavigate,
+  sites = EARTH_ANALOG_CANDIDATES,
+  references = PLANETARY_REFERENCES,
 }) => {
   const [selectedRefId, setSelectedRefId] = useState<string>(initialRefId);
   const [selectedEarthId, setSelectedEarthId] = useState<string>(initialEarthId);
   const [selectedActivity, setSelectedActivity] = useState<MissionActivity>('rover-traverse');
+  const [remoteInsight, setRemoteInsight] = useState<ApiSearchResultItem | null>(null);
+  const [isLoadingRemote, setIsLoadingRemote] = useState<boolean>(false);
 
   const reference = useMemo(() => {
-    return PLANETARY_REFERENCES.find((r) => r.id === selectedRefId) || PLANETARY_REFERENCES[0];
-  }, [selectedRefId]);
+    return references.find((r) => r.id === selectedRefId) || references[0] || PLANETARY_REFERENCES[0];
+  }, [references, selectedRefId]);
 
   const earth = useMemo(() => {
-    return EARTH_ANALOG_CANDIDATES.find((e) => e.id === selectedEarthId) || EARTH_ANALOG_CANDIDATES[0];
-  }, [selectedEarthId]);
+    return sites.find((e) => e.id === selectedEarthId) || sites[0] || EARTH_ANALOG_CANDIDATES[0];
+  }, [sites, selectedEarthId]);
+
+  // Fetch ML remote prediction and scientific breakdown from teammate's live API
+  useEffect(() => {
+    let isCancelled = false;
+    const fetchInsight = async () => {
+      setIsLoadingRemote(true);
+      try {
+        const apiTargetKey = TARGET_KEY_MAP[reference.id] || reference.id;
+        const results = await searchAnalogsRemote({
+          targetKey: apiTargetKey,
+          top: 50,
+        });
+        if (!isCancelled && results.length > 0) {
+          const matched = results.find(
+            (r) =>
+              r.site.key === earth.id ||
+              r.site.name.toLowerCase() === earth.name.toLowerCase() ||
+              earth.name.toLowerCase().includes(r.site.name.toLowerCase())
+          );
+          setRemoteInsight(matched || results[0]);
+        }
+      } catch (_) {
+        // Fallback to client-side mathematical scoring
+      } finally {
+        if (!isCancelled) setIsLoadingRemote(false);
+      }
+    };
+
+    fetchInsight();
+    return () => {
+      isCancelled = true;
+    };
+  }, [reference.id, earth.id]);
 
   // Compute live multi-metric similarity
   const similarity = useMemo(() => {
@@ -184,7 +229,7 @@ export const CompareView: React.FC<CompareViewProps> = ({
               onChange={(e) => setSelectedRefId(e.target.value)}
               className="w-full bg-[#121624] border border-[#1F2737] text-white text-xs rounded-lg px-3 py-2 font-medium focus:outline-none focus:border-cyan-500 cursor-pointer transition-colors"
             >
-              {PLANETARY_REFERENCES.map((r) => (
+              {references.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.name} ({r.body === 'moon' ? 'Moon' : 'Mars'})
                 </option>
@@ -196,14 +241,14 @@ export const CompareView: React.FC<CompareViewProps> = ({
           <div className="p-3 rounded-xl bg-[#0B0F17]/90 border border-slate-800/80 space-y-1.5">
             <label className="text-[11px] font-mono text-emerald-400 uppercase tracking-wider flex items-center justify-between">
               <span>2. Earth Analog Twin</span>
-              <span className="text-slate-400 font-normal">Copernicus / USGS</span>
+              <span className="text-slate-400 font-normal">{sites.length} Global Analogs</span>
             </label>
             <select
               value={selectedEarthId}
               onChange={(e) => setSelectedEarthId(e.target.value)}
               className="w-full bg-[#121624] border border-[#1F2737] text-white text-xs rounded-lg px-3 py-2 font-medium focus:outline-none focus:border-emerald-500 cursor-pointer transition-colors"
             >
-              {EARTH_ANALOG_CANDIDATES.map((e) => (
+              {sites.map((e) => (
                 <option key={e.id} value={e.id}>
                   {e.name} ({e.country})
                 </option>
@@ -331,6 +376,101 @@ export const CompareView: React.FC<CompareViewProps> = ({
 
         {/* Right Column: Physical Constraints & Site Passport Link */}
         <div className="lg:col-span-7 space-y-6">
+          {/* Teammate ML Model Live Evaluation Card */}
+          <div className="bg-[#0B0F17]/90 border border-slate-800/80 rounded-2xl p-6 space-y-4 shadow-xl relative overflow-hidden">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <Brain className="w-5 h-5 text-cyan-400" />
+                <div>
+                  <h3 className="text-sm font-bold text-white tracking-tight">
+                    ML-Assisted Planetary Analog Characterization
+                  </h3>
+                  <div className="text-[10px] font-mono text-cyan-400">
+                    Ridge Regression Model (NASA POWER Climatology & 20-Feature Space)
+                  </div>
+                </div>
+              </div>
+
+              {isLoadingRemote ? (
+                <div className="flex items-center gap-1.5 text-[10px] font-mono text-cyan-300">
+                  <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+                  <span>Querying Model...</span>
+                </div>
+              ) : (
+                <span className="px-2.5 py-0.5 rounded-full bg-cyan-950 border border-cyan-800/60 text-cyan-300 font-mono text-xs font-bold">
+                  {remoteInsight ? `${remoteInsight.score}% Match` : `${Math.round(similarity.overallScore)}% Match`}
+                </span>
+              )}
+            </div>
+
+            {remoteInsight ? (
+              <div className="space-y-4 text-xs">
+                {/* Why Analog */}
+                <div className="p-3.5 rounded-xl bg-[#0F1626] border border-cyan-500/20 space-y-1">
+                  <div className="font-semibold text-cyan-300 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span>Why This Location is an Analog:</span>
+                  </div>
+                  <p className="text-slate-300 text-[11px] leading-relaxed">
+                    {remoteInsight.why_analog || earth.geologicalContext}
+                  </p>
+                </div>
+
+                {/* Where the Analogy Breaks Down */}
+                <div className="p-3.5 rounded-xl bg-[#1A1215] border border-rose-900/40 space-y-1">
+                  <div className="font-semibold text-rose-300 flex items-center gap-1.5">
+                    <AlertTriangle className="w-4 h-4 text-rose-400" />
+                    <span>Where the Analogy Breaks Down:</span>
+                  </div>
+                  <p className="text-slate-300 text-[11px] leading-relaxed">
+                    {remoteInsight.breakdown_limitations || 'Earth retains 1G gravity, dense atmosphere, and active biology.'}
+                  </p>
+                </div>
+
+                {/* Strengths and Gaps Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  {remoteInsight.strengths && remoteInsight.strengths.length > 0 && (
+                    <div className="p-3 rounded-lg bg-[#0C121E] border border-emerald-900/30 space-y-1.5">
+                      <div className="text-[11px] font-mono text-emerald-400 uppercase font-semibold flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Key Matched Strengths</span>
+                      </div>
+                      <ul className="space-y-1 text-[11px] text-slate-300">
+                        {remoteInsight.strengths.slice(0, 3).map((st, i) => (
+                          <li key={i} className="flex items-start gap-1.5">
+                            <span className="text-emerald-400 mt-0.5">•</span>
+                            <span>{st}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {remoteInsight.gaps && remoteInsight.gaps.length > 0 && (
+                    <div className="p-3 rounded-lg bg-[#0C121E] border border-amber-900/30 space-y-1.5">
+                      <div className="text-[11px] font-mono text-amber-400 uppercase font-semibold flex items-center gap-1">
+                        <ShieldAlert className="w-3.5 h-3.5" />
+                        <span>Significant Environmental Gaps</span>
+                      </div>
+                      <ul className="space-y-1 text-[11px] text-slate-300">
+                        {remoteInsight.gaps.slice(0, 3).map((gp, i) => (
+                          <li key={i} className="flex items-start gap-1.5">
+                            <span className="text-amber-400 mt-0.5">•</span>
+                            <span>{gp}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400 leading-relaxed font-light">
+                {earth.geologicalContext}
+              </p>
+            )}
+          </div>
+
           {/* The Handicap Ledger: Physical Discrepancies */}
           <HandicapLedger
             body={reference.body}

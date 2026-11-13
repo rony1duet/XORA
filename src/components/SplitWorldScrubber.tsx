@@ -4,10 +4,11 @@
  * under locked 1:1 pixel scale and hillshade lighting, plus cross-section elevation profiles.
  */
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { PlanetaryReferenceSite, EarthCandidateSite } from '../types/analog';
 import { getTerrainImage } from '../data/terrainImages';
 import { SlidersHorizontal, Info, Layers, Activity } from 'lucide-react';
+import { ShimmerImage, ShimmerTransect } from './Shimmer';
 
 interface SplitWorldScrubberProps {
   reference: PlanetaryReferenceSite;
@@ -55,7 +56,7 @@ export const SplitWorldScrubber: React.FC<SplitWorldScrubberProps> = ({ referenc
     if ('setPointerCapture' in e.currentTarget && 'pointerId' in e) {
       try {
         e.currentTarget.setPointerCapture((e as React.PointerEvent).pointerId);
-      } catch (_) {}
+      } catch (_) { }
     }
   };
 
@@ -71,7 +72,7 @@ export const SplitWorldScrubber: React.FC<SplitWorldScrubberProps> = ({ referenc
     if ('releasePointerCapture' in e.currentTarget && 'pointerId' in e) {
       try {
         e.currentTarget.releasePointerCapture((e as React.PointerEvent).pointerId);
-      } catch (_) {}
+      } catch (_) { }
     }
   };
 
@@ -97,6 +98,19 @@ export const SplitWorldScrubber: React.FC<SplitWorldScrubberProps> = ({ referenc
     };
   }, [isDragging, handlePointerMove]);
 
+  const elevationExtremes = useMemo(() => {
+    const allElevations = [
+      ...reference.elevationProfile.map((p) => p.elevationM),
+      ...earth.elevationProfile.map((p) => p.elevationM),
+    ];
+    const rawMin = allElevations.length > 0 ? Math.min(...allElevations) : -1000;
+    const rawMax = allElevations.length > 0 ? Math.max(...allElevations) : 1000;
+    const padding = Math.max(150, (rawMax - rawMin) * 0.12);
+    const min = Math.floor(rawMin - padding);
+    const max = Math.ceil(rawMax + padding);
+    return { min, max, range: Math.max(1, max - min) };
+  }, [reference.elevationProfile, earth.elevationProfile]);
+
   return (
     <div className="bg-[#0F121C] border border-[#1F2737] rounded-xl overflow-hidden flex flex-col shadow-xl select-none">
       {/* Top control bar */}
@@ -113,22 +127,20 @@ export const SplitWorldScrubber: React.FC<SplitWorldScrubberProps> = ({ referenc
         <div className="flex items-center gap-1.5 p-1 bg-[#090A0F] rounded-lg border border-[#1F2737] text-xs">
           <button
             onClick={() => setViewType('imagery')}
-            className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer ${
-              viewType === 'imagery'
+            className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer ${viewType === 'imagery'
                 ? 'bg-[#1F2737] text-cyan-300 font-semibold shadow-sm'
                 : 'text-slate-400 hover:text-white'
-            }`}
+              }`}
           >
             <Layers className="w-3.5 h-3.5" />
             <span>Topographic Imagery</span>
           </button>
           <button
             onClick={() => setViewType('elevationProfile')}
-            className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer ${
-              viewType === 'elevationProfile'
+            className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 cursor-pointer ${viewType === 'elevationProfile'
                 ? 'bg-[#1F2737] text-cyan-300 font-semibold shadow-sm'
                 : 'text-slate-400 hover:text-white'
-            }`}
+              }`}
           >
             <Activity className="w-3.5 h-3.5" />
             <span>Elevation Transect</span>
@@ -147,15 +159,14 @@ export const SplitWorldScrubber: React.FC<SplitWorldScrubberProps> = ({ referenc
         >
           {/* Layer 1 (Right side): Earth Analog Image */}
           <div className="absolute inset-0 w-full h-full pointer-events-none select-none">
-            <img
+            <ShimmerImage
               src={getTerrainImage(earth.id, earth.demImageUrl)}
               alt={`Earth Analog: ${earth.name}`}
               draggable={false}
-              onDragStart={(e) => e.preventDefault()}
               className="w-full h-full object-cover pointer-events-none select-none"
             />
             {/* Earth Label (Bottom Right) */}
-            <div className="absolute bottom-4 right-4 bg-[#090A0F]/85 backdrop-blur-md border border-emerald-500/40 rounded-lg px-3 py-1.5 text-right shadow-lg pointer-events-none select-none">
+            <div className="absolute bottom-4 right-4 bg-[#090A0F]/85 backdrop-blur-md border border-emerald-500/40 rounded-lg px-3 py-1.5 text-right shadow-lg pointer-events-none select-none z-20">
               <div className="text-[10px] font-mono uppercase text-emerald-400 font-semibold tracking-wider">
                 Earth Twin Candidate
               </div>
@@ -168,21 +179,24 @@ export const SplitWorldScrubber: React.FC<SplitWorldScrubberProps> = ({ referenc
 
           {/* Layer 2 (Left side): Planetary Reference clipped precisely at scrubberPosition */}
           <div
-            className="absolute inset-0 h-full overflow-hidden pointer-events-none select-none"
+            className="absolute inset-0 h-full overflow-hidden pointer-events-none select-none z-10"
             style={{ width: `${scrubberPosition}%` }}
           >
-            <img
-              src={getTerrainImage(reference.id, reference.demImageUrl)}
-              alt={`Planetary Reference: ${reference.name}`}
-              draggable={false}
-              onDragStart={(e) => e.preventDefault()}
-              className="absolute inset-y-0 left-0 h-full object-cover max-w-none pointer-events-none select-none"
+            <div
+              className="absolute inset-y-0 left-0 h-full pointer-events-none select-none"
               style={{
                 width: containerWidth ? `${containerWidth}px` : '100%',
               }}
-            />
+            >
+              <ShimmerImage
+                src={getTerrainImage(reference.id, reference.demImageUrl)}
+                alt={`Planetary Reference: ${reference.name}`}
+                draggable={false}
+                className="w-full h-full object-cover pointer-events-none select-none"
+              />
+            </div>
             {/* Target Label (Bottom Left) */}
-            <div className="absolute bottom-4 left-4 bg-[#090A0F]/85 backdrop-blur-md border border-cyan-500/40 rounded-lg px-3 py-1.5 shadow-lg pointer-events-none select-none">
+            <div className="absolute bottom-4 left-4 bg-[#090A0F]/85 backdrop-blur-md border border-cyan-500/40 rounded-lg px-3 py-1.5 shadow-lg pointer-events-none select-none z-20">
               <div className="text-[10px] font-mono uppercase text-cyan-400 font-semibold tracking-wider">
                 {reference.body === 'moon' ? 'Lunar Reference' : 'Martian Reference'}
               </div>
@@ -195,7 +209,7 @@ export const SplitWorldScrubber: React.FC<SplitWorldScrubberProps> = ({ referenc
 
           {/* Scrubber Divider Handle */}
           <div
-            className="absolute top-0 bottom-0 w-0.5 bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.8)] pointer-events-none"
+            className="absolute top-0 bottom-0 w-0.5 bg-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.8)] pointer-events-none z-30"
             style={{ left: `${scrubberPosition}%` }}
           >
             <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-[#0F121C] border-2 border-cyan-400 flex items-center justify-center text-cyan-300 shadow-[0_0_12px_rgba(34,211,238,0.5)]">
@@ -206,14 +220,34 @@ export const SplitWorldScrubber: React.FC<SplitWorldScrubberProps> = ({ referenc
       ) : (
         /* Cross-Section Topographic Elevation Transect */
         <div className="p-6 bg-[#07080D] space-y-4">
-          <div className="text-xs text-slate-400 leading-relaxed font-light">
-            Standardized 25-kilometer radial topographic transect across the center of both sites.
-            Shows normalized relief difference across the analysis window.
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-400 leading-relaxed font-light">
+            <span>
+              Standardized 25-kilometer radial topographic transect across the center of both sites.
+            </span>
+            <span className="font-mono text-[11px] text-cyan-400">
+              Dynamic Range: [{elevationExtremes.min}m to {elevationExtremes.max}m]
+            </span>
           </div>
 
-          <div className="w-full h-52 flex items-end gap-1 border-b border-l border-[#1F2737] p-2 relative">
+          <div className="w-full h-56 flex items-end gap-1 border-b border-l border-[#1F2737] p-2 relative bg-[#090D18]/60 rounded-lg">
+            {/* Horizontal elevation guide lines */}
+            <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-2 opacity-20 text-[9px] font-mono text-slate-400">
+              <div className="border-b border-slate-700 flex justify-between">
+                <span>{elevationExtremes.max} m</span>
+                <span>Upper Transect</span>
+              </div>
+              <div className="border-b border-slate-700 border-dashed flex justify-between">
+                <span>{Math.round((elevationExtremes.max + elevationExtremes.min) / 2)} m</span>
+                <span>Median Datum</span>
+              </div>
+              <div className="flex justify-between">
+                <span>{elevationExtremes.min} m</span>
+                <span>Lower Transect</span>
+              </div>
+            </div>
+
             {/* SVG Profile curves */}
-            <svg className="w-full h-full overflow-visible" viewBox="0 0 500 150" preserveAspectRatio="none">
+            <svg className="w-full h-full overflow-visible z-10" viewBox="0 0 500 150" preserveAspectRatio="none">
               {/* Reference site curve */}
               {reference.elevationProfile.length > 1 && (
                 <polyline
@@ -223,10 +257,8 @@ export const SplitWorldScrubber: React.FC<SplitWorldScrubberProps> = ({ referenc
                   points={reference.elevationProfile
                     .map((pt, i) => {
                       const x = (i / (reference.elevationProfile.length - 1)) * 500;
-                      const min = -3500;
-                      const max = 3500;
-                      const y = 150 - ((pt.elevationM - min) / (max - min)) * 140;
-                      return `${x},${y}`;
+                      const y = 140 - ((pt.elevationM - elevationExtremes.min) / elevationExtremes.range) * 125;
+                      return `${x.toFixed(1)},${y.toFixed(1)}`;
                     })
                     .join(' ')}
                 />
@@ -242,17 +274,15 @@ export const SplitWorldScrubber: React.FC<SplitWorldScrubberProps> = ({ referenc
                   points={earth.elevationProfile
                     .map((pt, i) => {
                       const x = (i / (earth.elevationProfile.length - 1)) * 500;
-                      const min = -3500;
-                      const max = 3500;
-                      const y = 150 - ((pt.elevationM - min) / (max - min)) * 140;
-                      return `${x},${y}`;
+                      const y = 140 - ((pt.elevationM - elevationExtremes.min) / elevationExtremes.range) * 125;
+                      return `${x.toFixed(1)},${y.toFixed(1)}`;
                     })
                     .join(' ')}
                 />
               )}
             </svg>
 
-            <div className="absolute top-3 right-4 text-xs font-mono space-y-1.5 bg-[#0F121C]/90 p-3 rounded-lg border border-[#1F2737] shadow-lg">
+            <div className="absolute top-3 right-4 text-xs font-mono space-y-1.5 bg-[#0F121C]/90 p-3 rounded-lg border border-[#1F2737] shadow-lg z-20">
               <div className="text-cyan-400 flex items-center gap-2">
                 <span className="w-3.5 h-0.5 bg-cyan-400 inline-block rounded" />
                 <span>{reference.name} (Relief {reference.metrics.elevationReliefM}m)</span>
@@ -263,16 +293,25 @@ export const SplitWorldScrubber: React.FC<SplitWorldScrubberProps> = ({ referenc
               </div>
             </div>
           </div>
-        </div>
+                <span className="w-3.5 h-0.5 bg-cyan-400 inline-block rounded" />
+                <span>{reference.name} (Relief {reference.metrics.elevationReliefM}m)</span>
+              </div>
+              <div className="text-emerald-400 flex items-center gap-2">
+                <span className="w-3.5 h-0.5 bg-emerald-400 border-dashed inline-block" />
+                <span>{earth.name} (Relief {earth.metrics.elevationReliefM}m)</span>
+              </div>
+            </div>
+          </div >
+        </div >
       )}
 
-      {/* Scientific Notice Footer */}
-      <div className="p-3.5 bg-[#0A0D15] border-t border-[#1F2737] flex items-start gap-2.5 text-xs text-slate-400">
-        <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-        <span className="font-light">
-          <strong className="text-slate-300 font-medium">Morphological Comparison Notice:</strong> This visual scrubber displays orbital hillshade and terrain textures for spatial inspection. Numerical ranking is computed independently via the multi-metric feature engine.
-        </span>
-      </div>
-    </div>
+{/* Scientific Notice Footer */ }
+<div className="p-3.5 bg-[#0A0D15] border-t border-[#1F2737] flex items-start gap-2.5 text-xs text-slate-400">
+  <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+  <span className="font-light">
+    <strong className="text-slate-300 font-medium">Morphological Comparison Notice:</strong> This visual scrubber displays orbital hillshade and terrain textures for spatial inspection. Numerical ranking is computed independently via the multi-metric feature engine.
+  </span>
+</div>
+    </div >
   );
 };

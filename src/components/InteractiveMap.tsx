@@ -151,8 +151,43 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     currentLayersRef.current = [baseLayer, labelLayer];
     mapInstanceRef.current = map;
 
-    // Build analog candidate markers
+    // ResizeObserver ensures seamless rendering across layout shifts
+    const resizeObserver = new ResizeObserver(() => {
+      map.invalidateSize();
+    });
+    resizeObserver.observe(container);
+
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 80);
+
+    return () => {
+      clearTimeout(timer);
+      resizeObserver.disconnect();
+      Object.values(markersRef.current).forEach((m) => m.remove());
+      markersRef.current = {};
+      if (bufferLayerRef.current) {
+        bufferLayerRef.current.remove();
+        bufferLayerRef.current = null;
+      }
+      currentLayersRef.current.forEach((l) => {
+        if (map.hasLayer(l)) map.removeLayer(l);
+      });
+      currentLayersRef.current = [];
+      map.remove();
+      mapInstanceRef.current = null;
+    };
+  }, []); // Run on mount / unmount
+
+  // 2. Synchronize markers whenever candidate sites change
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    // Clear previous markers
+    Object.values(markersRef.current).forEach((m) => m.remove());
     markersRef.current = {};
+
     sites.forEach((site) => {
       const isMoon = site.primaryAnalogs.includes('moon');
       const isMars = site.primaryAnalogs.includes('mars');
@@ -197,36 +232,9 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
       markersRef.current[site.id] = marker;
     });
+  }, [sites, onSelectSite]);
 
-    // ResizeObserver ensures seamless rendering across layout shifts
-    const resizeObserver = new ResizeObserver(() => {
-      map.invalidateSize();
-    });
-    resizeObserver.observe(container);
-
-    const timer = setTimeout(() => {
-      map.invalidateSize();
-    }, 80);
-
-    return () => {
-      clearTimeout(timer);
-      resizeObserver.disconnect();
-      Object.values(markersRef.current).forEach((m) => m.remove());
-      markersRef.current = {};
-      if (bufferLayerRef.current) {
-        bufferLayerRef.current.remove();
-        bufferLayerRef.current = null;
-      }
-      currentLayersRef.current.forEach((l) => {
-        if (map.hasLayer(l)) map.removeLayer(l);
-      });
-      currentLayersRef.current = [];
-      map.remove();
-      mapInstanceRef.current = null;
-    };
-  }, []); // Run on mount / unmount
-
-  // 2. Smoothly update selected marker and viewport without recreating the map
+  // 3. Smoothly update selected marker and viewport without recreating the map
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -314,7 +322,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       bufferLayerRef.current = layer;
     };
 
-    if (cachedBuffersRef.current) {
+    if (cachedBuffersRef.current && cachedBuffersRef.current.features?.length === sites.length) {
       applyGeoJson(cachedBuffersRef.current);
       return;
     }

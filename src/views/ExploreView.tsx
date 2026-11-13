@@ -26,13 +26,18 @@ import {
   AlertTriangle,
   ArrowRight,
   Bookmark,
+  Search,
+  Filter,
 } from 'lucide-react';
+import { ShimmerMetricCard } from '../components/Shimmer';
 
 interface ExploreViewProps {
   initialBody?: CelestialBody;
   onNavigate: (route: string, params?: Record<string, string>) => void;
   shortlist: string[];
   onToggleShortlist: (siteId: string) => void;
+  sites?: EarthCandidateSite[];
+  references?: PlanetaryReferenceSite[];
 }
 
 export const ExploreView: React.FC<ExploreViewProps> = ({
@@ -40,45 +45,70 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   onNavigate,
   shortlist,
   onToggleShortlist,
+  sites = EARTH_ANALOG_CANDIDATES,
+  references = PLANETARY_REFERENCES,
 }) => {
   const [selectedBody, setSelectedBody] = useState<CelestialBody>(initialBody);
   const [selectedReferenceId, setSelectedReferenceId] = useState<string>(
     initialBody === 'moon' ? 'lunar-shackleton-rim' : 'mars-jezero-crater'
   );
   const [selectedActivity, setSelectedActivity] = useState<MissionActivity>('rover-traverse');
-  const [selectedSiteId, setSelectedSiteId] = useState<string>('atacama-yungay');
+  const [selectedSiteId, setSelectedSiteId] = useState<string>(sites[0]?.id || 'atacama-yungay');
+  const [candidateSearchQuery, setCandidateSearchQuery] = useState<string>('');
 
   const availableReferences = useMemo(
-    () => PLANETARY_REFERENCES.filter((r) => r.body === selectedBody),
-    [selectedBody]
+    () => references.filter((r) => r.body === selectedBody),
+    [references, selectedBody]
   );
 
   const activeReference: PlanetaryReferenceSite = useMemo(() => {
     return (
       availableReferences.find((r) => r.id === selectedReferenceId) ||
       availableReferences[0] ||
+      references[0] ||
       PLANETARY_REFERENCES[0]
     );
-  }, [availableReferences, selectedReferenceId]);
+  }, [availableReferences, selectedReferenceId, references]);
 
   const rankedResults = useMemo(() => {
     const weights = MISSION_ACTIVITY_WEIGHTS[selectedActivity];
-    return rankCandidatesWithStability(
-      EARTH_ANALOG_CANDIDATES,
+    const ranked = rankCandidatesWithStability(
+      sites,
       activeReference,
       weights,
       42
     );
-  }, [activeReference, selectedActivity]);
+    if (!candidateSearchQuery.trim()) return ranked;
+    const q = candidateSearchQuery.toLowerCase();
+    return ranked.filter(
+      (r) =>
+        r.site.name.toLowerCase().includes(q) ||
+        r.site.country.toLowerCase().includes(q) ||
+        r.site.location.toLowerCase().includes(q) ||
+        r.site.metrics.geologicalClass.toLowerCase().includes(q)
+    );
+  }, [sites, activeReference, selectedActivity, candidateSearchQuery]);
 
-  const topResult = rankedResults[0];
+  const topResult = rankedResults[0] || {
+    site: sites[0] || EARTH_ANALOG_CANDIDATES[0],
+    reference: activeReference,
+    overallScore: 85,
+    featureScores: {},
+    includedFeatures: [],
+    excludedFeatures: [],
+    dataCoveragePct: 100,
+    topMismatches: [],
+    rankStabilityPct: 92,
+    rank: 1,
+  };
+
   const selectedResult = useMemo(() => {
     return rankedResults.find((r) => r.site.id === selectedSiteId) || topResult;
   }, [rankedResults, selectedSiteId, topResult]);
 
   const handleBodyChange = (body: CelestialBody) => {
     setSelectedBody(body);
-    const newRefs = PLANETARY_REFERENCES.filter((r) => r.body === body);
+    const newRefs = references.filter((r) => r.body === body);
     if (newRefs.length > 0) {
       setSelectedReferenceId(newRefs[0].id);
     }
@@ -175,22 +205,29 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
         <div className="lg:col-span-7 space-y-5">
           {/* Global Interactive Map (Free Leaflet + OpenStreetMap/CartoDB) */}
           <InteractiveMap
-            sites={EARTH_ANALOG_CANDIDATES}
+            sites={sites}
             selectedSiteId={selectedResult.site.id}
             onSelectSite={(site) => setSelectedSiteId(site.id)}
             activeTargetBody={selectedBody}
           />
 
-          {/* Ranked Candidates Strip */}
+          {/* Ranked Candidates Strip with Live Search Filter */}
           <div className="bg-[#0F121C] border border-[#1F2737] rounded-xl p-4 sm:p-5 space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h3 className="text-sm font-semibold text-white tracking-tight flex items-center gap-2">
                 <Compass className="w-4 h-4 text-cyan-400" />
-                <span>Ranked Terrestrial Candidates for {activeReference.name}</span>
+                <span>Ranked Terrestrial Candidates ({rankedResults.length} sites)</span>
               </h3>
-              <span className="text-xs font-mono text-slate-400">
-                Sorted for {selectedActivity.replace(/-/g, ' ')}
-              </span>
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Filter country, region or geology..."
+                  value={candidateSearchQuery}
+                  onChange={(e) => setCandidateSearchQuery(e.target.value)}
+                  className="bg-[#121624] border border-[#1F2737] rounded-lg pl-8 pr-3 py-1 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 w-48 sm:w-56"
+                />
+              </div>
             </div>
 
             <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
