@@ -14,7 +14,6 @@ import { EarthCandidateSite, PlanetaryReferenceSite, CelestialBody } from './typ
 import { EARTH_ANALOG_CANDIDATES } from './data/earthAnalogs';
 import { PLANETARY_REFERENCES } from './data/planetaryReferences';
 import { fetchApiSites, fetchApiTargets, testApiConnection } from './services/analogApiService';
-import { ApiHubModal } from './components/ApiHubModal';
 
 export default function App() {
   const [currentRoute, setCurrentRoute] = useState<string>('home');
@@ -23,7 +22,6 @@ export default function App() {
   const [sites, setSites] = useState<EarthCandidateSite[]>(EARTH_ANALOG_CANDIDATES);
   const [references, setReferences] = useState<PlanetaryReferenceSite[]>(PLANETARY_REFERENCES);
   const [isApiLive, setIsApiLive] = useState<boolean>(false);
-  const [isApiHubOpen, setIsApiHubOpen] = useState<boolean>(false);
 
   // Synchronize state with URL hash on mount & hash changes
   useEffect(() => {
@@ -101,12 +99,10 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#07090E] text-[#F8FAFC] font-sans antialiased selection:bg-cyan-500/20 selection:text-cyan-200">
-      {/* Clean Minimal Top Bar Navigation with API Hub Button */}
+      {/* Clean Minimal Top Bar Navigation */}
       <Navbar
         currentRoute={currentRoute}
         navigate={navigate}
-        onOpenApiHub={() => setIsApiHubOpen(true)}
-        isApiLive={isApiLive}
       />
 
       {/* Main View Stage */}
@@ -154,17 +150,6 @@ export default function App() {
           />
         )}
       </main>
-
-      {/* Teammate API Integration & Custom Match Modal */}
-      <ApiHubModal
-        isOpen={isApiHubOpen}
-        onClose={() => setIsApiHubOpen(false)}
-        onSitesUpdated={(newSites: EarthCandidateSite[], isRemote: boolean) => {
-          setSites(newSites);
-          setIsApiLive(isRemote);
-        }}
-        onViewTwin={(id: string) => navigate('sites', { id })}
-      />
 
       {/* Clean Minimal Simple Footer */}
       <footer className="border-t border-[#182030] bg-[#07090E] py-10 text-xs text-slate-400">

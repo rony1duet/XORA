@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 import { FeatureScoreBreakdown } from '../types/analog';
-import { Table, Eye } from 'lucide-react';
+import { Table, Eye, BarChart3 } from 'lucide-react';
 import { ShimmerRadar } from './Shimmer';
 
 interface SimilarityFingerprintProps {
@@ -24,7 +24,7 @@ export const SimilarityFingerprint: React.FC<SimilarityFingerprintProps> = ({
   showTableToggle = true,
   isLoading = false,
 }) => {
-  const [viewMode, setViewMode] = useState<'glyph' | 'table'>('glyph');
+  const [viewMode, setViewMode] = useState<'barChart' | 'glyph' | 'table'>('barChart');
 
   if (isLoading) {
     return <ShimmerRadar size={size} />;
@@ -63,11 +63,25 @@ export const SimilarityFingerprint: React.FC<SimilarityFingerprintProps> = ({
     <div className="flex flex-col items-center">
       {/* View mode toggle */}
       {showTableToggle && (
-        <div className="flex items-center justify-end w-full mb-2">
+        <div className="flex items-center justify-between w-full mb-3 gap-2">
+          <div className="text-[11px] font-mono text-cyan-400 font-semibold uppercase">
+            Fit: {overallScore.toFixed(1)}% Match
+          </div>
           <div className="inline-flex rounded-md p-0.5 bg-slate-900 border border-slate-800 text-xs">
             <button
+              onClick={() => setViewMode('barChart')}
+              className={`px-2 py-0.5 rounded transition-colors flex items-center gap-1 cursor-pointer ${
+                viewMode === 'barChart'
+                  ? 'bg-slate-800 text-cyan-300 font-medium'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span>Bar Chart</span>
+            </button>
+            <button
               onClick={() => setViewMode('glyph')}
-              className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1.5 ${
+              className={`px-2 py-0.5 rounded transition-colors flex items-center gap-1 cursor-pointer ${
                 viewMode === 'glyph'
                   ? 'bg-slate-800 text-cyan-300 font-medium'
                   : 'text-slate-400 hover:text-white'
@@ -78,7 +92,7 @@ export const SimilarityFingerprint: React.FC<SimilarityFingerprintProps> = ({
             </button>
             <button
               onClick={() => setViewMode('table')}
-              className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1.5 ${
+              className={`px-2 py-0.5 rounded transition-colors flex items-center gap-1 cursor-pointer ${
                 viewMode === 'table'
                   ? 'bg-slate-800 text-cyan-300 font-medium'
                   : 'text-slate-400 hover:text-white'
@@ -91,7 +105,50 @@ export const SimilarityFingerprint: React.FC<SimilarityFingerprintProps> = ({
         </div>
       )}
 
-      {viewMode === 'glyph' ? (
+      {viewMode === 'barChart' ? (
+        /* Dynamic Multi-Vector Bar Chart */
+        <div className="w-full space-y-2.5 py-1">
+          {axes.map((axis) => {
+            const breakdown = featureScores[axis.key];
+            const sim = breakdown?.similarity ?? 0.5;
+            const pct = Math.round(sim * 100);
+            const isHigh = pct >= 85;
+            const isMed = pct >= 70;
+
+            return (
+              <div key={axis.key} className="p-2 rounded-lg bg-[#0F1422] border border-slate-800/80 space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-medium text-slate-200">{axis.label}</span>
+                  <span className={`font-mono text-xs font-bold ${
+                    isHigh ? 'text-emerald-400' : isMed ? 'text-cyan-400' : 'text-amber-400'
+                  }`}>
+                    {pct}%
+                  </span>
+                </div>
+
+                {/* Animated Horizontal Bar */}
+                <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-700 ${
+                      isHigh ? 'bg-gradient-to-r from-emerald-500 to-teal-400' :
+                      isMed ? 'bg-gradient-to-r from-cyan-500 to-sky-400' :
+                      'bg-gradient-to-r from-amber-500 to-orange-400'
+                    }`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+
+                {breakdown && (
+                  <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 pt-0.5">
+                    <span>Earth: <strong className="text-slate-300">{breakdown.earthValue}</strong></span>
+                    <span>Target: <strong className="text-slate-300">{breakdown.refValue}</strong></span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ) : viewMode === 'glyph' ? (
         <div className="relative flex flex-col items-center">
           <svg
             width={size}

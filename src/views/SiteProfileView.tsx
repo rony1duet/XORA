@@ -59,9 +59,20 @@ export const SiteProfileView: React.FC<SiteProfileViewProps> = ({
             <span>·</span>
             <span>{site.location}, {site.country}</span>
             <span>·</span>
-            <span className="uppercase text-emerald-400 font-semibold">
-              Primary: {site.primaryAnalogs.join(' & ')}
-            </span>
+            <div className="flex items-center gap-1.5">
+              {site.primaryAnalogs.map((a) => (
+                <span
+                  key={a}
+                  className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded border font-semibold ${
+                    a === 'moon'
+                      ? 'bg-cyan-950/80 border-cyan-800/60 text-cyan-300'
+                      : 'bg-amber-950/80 border-amber-800/60 text-amber-300'
+                  }`}
+                >
+                  {a === 'moon' ? '🌕 Moon Twin' : '🔴 Mars Twin'}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 

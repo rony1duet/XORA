@@ -241,12 +241,28 @@ export function mapApiSiteToEarthCandidate(apiSite: ApiSite): EarthCandidateSite
   else if ((tags.fluvial_paleolake ?? 0) >= 0.3 || (tags.salt_flat ?? 0) >= 0.3) geologicalClass = 'sedimentary_deltaic';
   else if ((tags.volcanic_basalt ?? 0) >= 0.3) geologicalClass = 'volcanic_basalt';
 
-  // Infer Primary Celestial Analogs
+  // Infer Primary Celestial Analogs based on geomorphological and atmospheric processes
   const primaryAnalogs: ('moon' | 'mars')[] = [];
-  if ((tags.impact_crater ?? 0) > 0.3 || (tags.volcanic_basalt ?? 0) > 0.4 || (tags.subsurface_cave ?? 0) > 0.4) {
-    primaryAnalogs.push('moon');
+  const isMoonAnalog = 
+    (tags.impact_crater ?? 0) >= 0.25 || 
+    (tags.volcanic_basalt ?? 0) >= 0.35 || 
+    (tags.subsurface_cave ?? 0) >= 0.35 ||
+    (tags.ophiolite_olivine ?? 0) >= 0.3;
+
+  const isMarsAnalog = 
+    (tags.fluvial_paleolake ?? 0) >= 0.25 || 
+    (tags.salt_flat ?? 0) >= 0.25 || 
+    (tags.hydrothermal_acid ?? 0) >= 0.25 || 
+    (tags.aeolian_dunes ?? 0) >= 0.25 || 
+    (tags.permafrost_ice ?? 0) >= 0.25 || 
+    (tags.extremophile_studies ?? 0) >= 0.25 ||
+    (tags.volcanic_basalt ?? 0) >= 0.3;
+
+  if (isMoonAnalog) primaryAnalogs.push('moon');
+  if (isMarsAnalog) primaryAnalogs.push('mars');
+  if (primaryAnalogs.length === 0) {
+    primaryAnalogs.push('mars');
   }
-  primaryAnalogs.push('mars');
 
   // Estimate relief and slope from tags & elevation
   const relief = elev > 0 ? Math.min(2200, Math.max(120, Math.round(elev * 0.28))) : 250;

@@ -4,7 +4,7 @@
  * mission activity filters, interactive global Leaflet map, and live ranked candidate inspector.
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   CelestialBody,
   MissionActivity,
@@ -52,6 +52,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   references = PLANETARY_REFERENCES,
 }) => {
   const [selectedBody, setSelectedBody] = useState<CelestialBody>(initialBody);
+  const [candidateFilter, setCandidateFilter] = useState<'auto' | 'all' | 'moon' | 'mars'>('auto');
   const [selectedReferenceId, setSelectedReferenceId] = useState<string>(
     initialBody === 'moon' ? 'lunar-shackleton-rim' : 'mars-jezero-crater'
   );
@@ -60,6 +61,16 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   const [candidateSearchQuery, setCandidateSearchQuery] = useState<string>('');
   const [isLiveCompareOpen, setIsLiveCompareOpen] = useState<boolean>(false);
   const [liveCompareCustomPoint, setLiveCompareCustomPoint] = useState<CustomProbedPoint | null>(null);
+
+  const effectiveFilter = candidateFilter === 'auto' ? selectedBody : candidateFilter;
+
+  const moonCount = useMemo(() => sites.filter((s) => s.primaryAnalogs.includes('moon')).length, [sites]);
+  const marsCount = useMemo(() => sites.filter((s) => s.primaryAnalogs.includes('mars')).length, [sites]);
+
+  const filteredSites = useMemo(() => {
+    if (effectiveFilter === 'all') return sites;
+    return sites.filter((s) => s.primaryAnalogs.includes(effectiveFilter));
+  }, [sites, effectiveFilter]);
 
   const availableReferences = useMemo(
     () => references.filter((r) => r.body === selectedBody),
@@ -78,7 +89,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   const rankedResults = useMemo(() => {
     const weights = MISSION_ACTIVITY_WEIGHTS[selectedActivity];
     const ranked = rankCandidatesWithStability(
-      sites,
+      filteredSites,
       activeReference,
       weights,
       42
@@ -92,10 +103,10 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
         r.site.location.toLowerCase().includes(q) ||
         r.site.metrics.geologicalClass.toLowerCase().includes(q)
     );
-  }, [sites, activeReference, selectedActivity, candidateSearchQuery]);
+  }, [filteredSites, activeReference, selectedActivity, candidateSearchQuery]);
 
   const topResult = rankedResults[0] || {
-    site: sites[0] || EARTH_ANALOG_CANDIDATES[0],
+    site: filteredSites[0] || sites[0] || EARTH_ANALOG_CANDIDATES[0],
     reference: activeReference,
     overallScore: 85,
     featureScores: {},
@@ -110,6 +121,13 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
   const selectedResult = useMemo(() => {
     return rankedResults.find((r) => r.site.id === selectedSiteId) || topResult;
   }, [rankedResults, selectedSiteId, topResult]);
+
+  // Keep selected site valid when candidate filter or body changes
+  useEffect(() => {
+    if (rankedResults.length > 0 && !rankedResults.some((r) => r.site.id === selectedSiteId)) {
+      setSelectedSiteId(rankedResults[0].site.id);
+    }
+  }, [rankedResults, selectedSiteId]);
 
   const handleBodyChange = (body: CelestialBody) => {
     setSelectedBody(body);
@@ -240,6 +258,59 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
               </div>
             </div>
 
+            {/* Candidate Body Filter Tabs */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-1 text-xs">
+              <span className="text-[11px] font-mono text-slate-400 uppercase tracking-wider mr-1">
+                Filter Analogs:
+              </span>
+              <button
+                onClick={() => setCandidateFilter('auto')}
+                className={`px-3 py-1 rounded-md text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5 ${
+                  candidateFilter === 'auto'
+                    ? selectedBody === 'moon'
+                      ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-500/50 font-bold shadow'
+                      : 'bg-amber-500/25 text-amber-300 border border-amber-500/50 font-bold shadow'
+                    : 'bg-[#121624] text-slate-400 border border-[#1F2737] hover:text-white'
+                }`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${selectedBody === 'moon' ? 'bg-cyan-400' : 'bg-amber-400'}`} />
+                <span>{selectedBody === 'moon' ? `Moon Analogs (${moonCount})` : `Mars Analogs (${marsCount})`}</span>
+                <span className="text-[10px] opacity-70">(Auto)</span>
+              </button>
+              <button
+                onClick={() => setCandidateFilter('moon')}
+                className={`px-3 py-1 rounded-md text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5 ${
+                  candidateFilter === 'moon'
+                    ? 'bg-cyan-500/25 text-cyan-300 border border-cyan-500/50 font-bold shadow'
+                    : 'bg-[#121624] text-slate-400 border border-[#1F2737] hover:text-cyan-300'
+                }`}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                <span>Moon Only ({moonCount})</span>
+              </button>
+              <button
+                onClick={() => setCandidateFilter('mars')}
+                className={`px-3 py-1 rounded-md text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5 ${
+                  candidateFilter === 'mars'
+                    ? 'bg-amber-500/25 text-amber-300 border border-amber-500/50 font-bold shadow'
+                    : 'bg-[#121624] text-slate-400 border border-[#1F2737] hover:text-amber-300'
+                }`}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                <span>Mars Only ({marsCount})</span>
+              </button>
+              <button
+                onClick={() => setCandidateFilter('all')}
+                className={`px-3 py-1 rounded-md text-xs font-mono transition-all cursor-pointer ${
+                  candidateFilter === 'all'
+                    ? 'bg-slate-700/80 text-white font-bold border border-slate-600 shadow'
+                    : 'bg-[#121624] text-slate-400 border border-[#1F2737] hover:text-white'
+                }`}
+              >
+                <span>All Sites ({sites.length})</span>
+              </button>
+            </div>
+
             <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
               {rankedResults.map((result) => {
                 const isSelected = result.site.id === selectedResult.site.id;
@@ -274,6 +345,18 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
                               #1 TWIN
                             </span>
                           )}
+                          {result.site.primaryAnalogs.map((a) => (
+                            <span
+                              key={a}
+                              className={`text-[9px] font-mono uppercase px-1.5 py-0.5 rounded border ${
+                                a === 'moon'
+                                  ? 'bg-cyan-950/80 border-cyan-800/60 text-cyan-300'
+                                  : 'bg-amber-950/80 border-amber-800/60 text-amber-300'
+                              }`}
+                            >
+                              {a === 'moon' ? 'Moon' : 'Mars'}
+                            </span>
+                          ))}
                         </div>
                         <div className="text-[11px] text-slate-400 font-mono">
                           {result.site.location}, {result.site.country} · {result.site.metrics.geologicalClass.replace(/_/g, ' ')}
@@ -342,12 +425,12 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
             {/* Clear Plain-English Geological Summary */}
             <div className="p-3.5 rounded-xl bg-[#141C2B] border border-[#252F42] space-y-1.5 text-xs">
               <div className="font-semibold text-cyan-300">
-                Terrain Match Assessment: {selectedResult.site.name}
+                Mission Fit Assessment: {selectedResult.site.name}
               </div>
               <p className="text-slate-300 leading-relaxed text-[11px] font-light">
-                {selectedResult.site.name} matches {activeReference.name} at a{' '}
-                <strong className="text-white font-semibold">{selectedResult.overallScore.toFixed(1)}% score</strong>.
-                Slope gradients average {selectedResult.site.metrics.slopeMeanDeg.toFixed(1)}° with {selectedResult.site.metrics.roughnessRmsM.toFixed(2)}m RMS roughness, offering calibrated test terrain for {selectedActivity.replace(/-/g, ' ')}.
+                {selectedResult.site.name} matches {activeReference.name} with a{' '}
+                <strong className="text-white font-semibold">{selectedResult.overallScore.toFixed(1)}% fidelity score</strong>.
+                Its {selectedResult.site.metrics.slopeMeanDeg.toFixed(1)}° slopes and {selectedResult.site.metrics.roughnessRmsM.toFixed(2)}m roughness create ideal real-world terrain to rehearse {selectedActivity.replace(/-/g, ' ')}.
               </p>
             </div>
 
@@ -355,7 +438,7 @@ export const ExploreView: React.FC<ExploreViewProps> = ({
             <div className="space-y-2">
               <div className="text-xs font-mono uppercase text-amber-400 flex items-center gap-1.5">
                 <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                <span>Documented Physical Divergences</span>
+                <span>The Reality Check: What Differs on Earth</span>
               </div>
 
               {selectedResult.topMismatches.length > 0 ? (

@@ -86,6 +86,9 @@ export const CompareView: React.FC<CompareViewProps> = ({
   const [remoteInsight, setRemoteInsight] = useState<ApiSearchResultItem | null>(null);
   const [isLoadingRemote, setIsLoadingRemote] = useState<boolean>(false);
 
+  const moonSites = useMemo(() => sites.filter((e) => e.primaryAnalogs.includes('moon')), [sites]);
+  const marsSites = useMemo(() => sites.filter((e) => e.primaryAnalogs.includes('mars')), [sites]);
+
   const reference = useMemo(() => {
     return references.find((r) => r.id === selectedRefId) || references[0] || PLANETARY_REFERENCES[0];
   }, [references, selectedRefId]);
@@ -154,14 +157,14 @@ export const CompareView: React.FC<CompareViewProps> = ({
                   ? 'bg-cyan-950/80 border border-cyan-800/60 text-cyan-300' 
                   : 'bg-amber-950/80 border border-amber-800/60 text-amber-300'
               }`}>
-                {isMoon ? 'Moon Reference' : 'Mars Reference'}
+                {isMoon ? 'Moon Exploration Target' : 'Mars Exploration Target'}
               </span>
               <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                Dual-World Terrain Comparator
+                Planetary Proving Ground Studio: Earth vs. {isMoon ? 'Moon' : 'Mars'}
               </h1>
             </div>
-            <p className="text-xs text-slate-400 font-light max-w-2xl">
-              1:1 scale topographic match comparing orbital laser altimetry against calibrated terrestrial test grounds.
+            <p className="text-xs text-slate-300 font-light max-w-2xl leading-relaxed">
+              Earth is humanity's most accessible laboratory. Here, mission teams test rover wheels, robotic drills, and navigation cameras across terrestrial terrains that mirror the Moon's cratered poles and Mars's ancient dry river deltas.
             </p>
           </div>
 
@@ -227,14 +230,35 @@ export const CompareView: React.FC<CompareViewProps> = ({
             </label>
             <select
               value={selectedRefId}
-              onChange={(e) => setSelectedRefId(e.target.value)}
+              onChange={(e) => {
+                const newRefId = e.target.value;
+                setSelectedRefId(newRefId);
+                const newRef = references.find((r) => r.id === newRefId);
+                if (newRef && !earth.primaryAnalogs.includes(newRef.body)) {
+                  const matching = sites.find((s) => s.primaryAnalogs.includes(newRef.body));
+                  if (matching) setSelectedEarthId(matching.id);
+                }
+              }}
               className="w-full bg-[#121624] border border-[#1F2737] text-white text-xs rounded-lg px-3 py-2 font-medium focus:outline-none focus:border-cyan-500 cursor-pointer transition-colors"
             >
-              {references.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name} ({r.body === 'moon' ? 'Moon' : 'Mars'})
-                </option>
-              ))}
+              <optgroup label="🌕 Moon Exploration Targets">
+                {references
+                  .filter((r) => r.body === 'moon')
+                  .map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name} ({r.keyTargetFeature})
+                    </option>
+                  ))}
+              </optgroup>
+              <optgroup label="🔴 Mars Exploration Targets">
+                {references
+                  .filter((r) => r.body === 'mars')
+                  .map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name} ({r.keyTargetFeature})
+                    </option>
+                  ))}
+              </optgroup>
             </select>
           </div>
 
@@ -249,11 +273,20 @@ export const CompareView: React.FC<CompareViewProps> = ({
               onChange={(e) => setSelectedEarthId(e.target.value)}
               className="w-full bg-[#121624] border border-[#1F2737] text-white text-xs rounded-lg px-3 py-2 font-medium focus:outline-none focus:border-emerald-500 cursor-pointer transition-colors"
             >
-              {sites.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.name} ({e.country})
-                </option>
-              ))}
+              <optgroup label={`🌕 Moon Analogs (${moonSites.length})`}>
+                {moonSites.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.name} ({e.country})
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label={`🔴 Mars Analogs (${marsSites.length})`}>
+                {marsSites.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.name} ({e.country})
+                  </option>
+                ))}
+              </optgroup>
             </select>
           </div>
 
@@ -299,10 +332,10 @@ export const CompareView: React.FC<CompareViewProps> = ({
           <div className="flex items-center justify-between pb-4 border-b border-slate-800">
             <div>
               <span className="text-xs font-mono uppercase text-cyan-400 font-semibold tracking-wider">
-                Multi-Vector Glyph
+                Scientific Comparison Profile
               </span>
               <h3 className="text-base font-bold text-white tracking-tight mt-0.5">
-                Topographic Fingerprint
+                Terrain &amp; Environmental Blueprint
               </h3>
             </div>
             <span className="text-xs font-mono text-slate-400 px-2.5 py-1 rounded-md bg-[#121624] border border-slate-800">
@@ -381,10 +414,10 @@ export const CompareView: React.FC<CompareViewProps> = ({
                 <Brain className="w-5 h-5 text-cyan-400" />
                 <div>
                   <h3 className="text-sm font-bold text-white tracking-tight">
-                    ML-Assisted Planetary Analog Characterization
+                    Why This Place Feels Like {reference.body === 'moon' ? 'the Moon' : 'Mars'}
                   </h3>
                   <div className="text-[10px] font-mono text-cyan-400">
-                    Ridge Regression Model (NASA POWER Climatology & 20-Feature Space)
+                    Scientific Analysis: Geology, Surface Chemistry &amp; Mission Value
                   </div>
                 </div>
               </div>

@@ -1,68 +1,57 @@
 /**
- * Terrain and Planetary Imagery Registry
- * Ensures high-resolution, verified imagery for every planetary reference
- * and terrestrial analog site with zero broken assets.
+ * Dynamic Planetary & Terrestrial Terrain Registry
+ * 100% Dynamic - Zero static image dependencies.
+ * Powered by OpenPlanetary (USGS/NASA) and Copernicus/Esri orbital tile services.
  */
 
-import atacamaImg from '../assets/images/atacama_analog_terrain_1791609843049.jpg';
-import deathValleyImg from '../assets/images/death_valley_mars_analog_1791615682959.jpg';
-import haughtonImg from '../assets/images/haughton_analog_terrain_1791609856537.jpg';
-import jezeroImg from '../assets/images/jezero_crater_dem_1791609820711.jpg';
-import lanzaroteImg from '../assets/images/lanzarote_lava_tubes_1791615653928.jpg';
-import lunarMareImg from '../assets/images/lunar_mare_valley_dem_1791614326798.jpg';
-import mariusHillsImg from '../assets/images/lunar_marius_skylight_1791615641068.jpg';
-import galeMountSharpImg from '../assets/images/mars_gale_mount_sharp_1791615594805.jpg';
-import vallesMarinerisImg from '../assets/images/mars_valles_marineris_1791615607455.jpg';
-import mcmurdoImg from '../assets/images/mcmurdo_dry_valleys_1791615737910.jpg';
-import meteorCraterImg from '../assets/images/meteor_crater_analog_1791615694897.jpg';
-import oceanusProcellarumImg from '../assets/images/oceanus_procellarum_mare_1791615748708.jpg';
-import rioTintoImg from '../assets/images/rio_tinto_mars_analog_1791615810477.jpg';
-import shackletonImg from '../assets/images/shackleton_rim_dem_1791609831609.jpg';
-import svalbardImg from '../assets/images/svalbard_permafrost_polygons_1791615823822.jpg';
-import basaltImg from '../assets/images/volcanic_basalt_terrain_1791614313177.jpg';
+// Dynamic OpenPlanetary tile baselines for Moon & Mars
+const OPM_MOON_BASE = 'https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-moon-basemap-v0-1/all';
+const OPM_MARS_BASE = 'https://cartocdn-gusc.global.ssl.fastly.net/opmbuilder/api/v1/map/named/opm-mars-basemap-v0-2/all';
+const ESRI_EARTH_BASE = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile';
 
 export const TERRAIN_IMAGES: Record<string, string> = {
-  // Planetary Reference Sites
-  // Planetary Reference Sites (Canonical IDs & Aliases)
-  'lunar-shackleton-rim': shackletonImg,
-  'shackleton-rim': shackletonImg,
-  'lunar-taurus-littrow': lunarMareImg,
-  'taurus-littrow': lunarMareImg,
-  'lunar-tranquillitatis-pit': mariusHillsImg,
-  'tranquillitatis-pit': mariusHillsImg,
-  'lunar-marius-hills': mariusHillsImg,
-  'lunar-oceanus-procellarum': oceanusProcellarumImg,
-  'mars-jezero-crater': jezeroImg,
-  'jezero-crater': jezeroImg,
-  'mars-gale-crater': galeMountSharpImg,
-  'mars-gale-mount-sharp': galeMountSharpImg,
-  'gale-mount-sharp': galeMountSharpImg,
-  'mars-oxia-planum': vallesMarinerisImg,
-  'oxia-planum': vallesMarinerisImg,
-  'mars-valles-marineris': vallesMarinerisImg,
+  // Planetary Reference Sites (Moon - OpenPlanetary LRO LOLA WAC Tiles)
+  'lunar-shackleton-rim': `${OPM_MOON_BASE}/2/1/1.png`,
+  'shackleton-rim': `${OPM_MOON_BASE}/2/1/1.png`,
+  'lunar-taurus-littrow': `${OPM_MOON_BASE}/2/2/1.png`,
+  'taurus-littrow': `${OPM_MOON_BASE}/2/2/1.png`,
+  'lunar-tranquillitatis-pit': `${OPM_MOON_BASE}/2/2/1.png`,
+  'tranquillitatis-pit': `${OPM_MOON_BASE}/2/2/1.png`,
+  'lunar-marius-hills': `${OPM_MOON_BASE}/2/1/1.png`,
+  'lunar-oceanus-procellarum': `${OPM_MOON_BASE}/2/0/1.png`,
 
-  // Terrestrial Analog Sites (full and canonical IDs)
-  'atacama-yungay': atacamaImg,
-  'haughton-crater': haughtonImg,
-  'lanzarote-tubes': lanzaroteImg,
-  'death-valley-mars-hill': deathValleyImg,
-  'death-valley-fans': deathValleyImg,
-  'iceland-askja-holuhraun': basaltImg,
-  'askja-holuhraun': basaltImg,
-  'hawaii-mauna-kea': basaltImg,
-  'california-coso-volcanic': basaltImg,
-  'coso-volcanic': basaltImg,
-  'spain-rio-tinto': rioTintoImg,
-  'rio-tinto': rioTintoImg,
-  'svalbard-spitsbergen': svalbardImg,
-  'svalbard-polygons': svalbardImg,
-  'utah-hanksville-mdrs': deathValleyImg,
-  'hanksville-mdrs': deathValleyImg,
-  'arizona-meteor-crater': meteorCraterImg,
-  'meteor-crater': meteorCraterImg,
-  'antarctica-mcmurdo-dry-valleys': mcmurdoImg,
-  'mcmurdo-dry-valleys': mcmurdoImg,
-  'kilbourne-hole': lunarMareImg,
+  // Planetary Reference Sites (Mars - OpenPlanetary Viking MDIM Tiles)
+  'mars-jezero-crater': `${OPM_MARS_BASE}/2/2/1.png`,
+  'jezero-crater': `${OPM_MARS_BASE}/2/2/1.png`,
+  'mars-gale-crater': `${OPM_MARS_BASE}/2/3/2.png`,
+  'mars-gale-mount-sharp': `${OPM_MARS_BASE}/2/3/2.png`,
+  'gale-mount-sharp': `${OPM_MARS_BASE}/2/3/2.png`,
+  'mars-oxia-planum': `${OPM_MARS_BASE}/2/1/1.png`,
+  'oxia-planum': `${OPM_MARS_BASE}/2/1/1.png`,
+  'mars-valles-marineris': `${OPM_MARS_BASE}/2/1/2.png`,
+
+  // Terrestrial Analog Sites (Esri World Imagery Regional Tiles)
+  'atacama-yungay': `${ESRI_EARTH_BASE}/5/10/18`,
+  'haughton-crater': `${ESRI_EARTH_BASE}/5/3/10`,
+  'lanzarote-tubes': `${ESRI_EARTH_BASE}/6/30/15`,
+  'death-valley-mars-hill': `${ESRI_EARTH_BASE}/6/11/24`,
+  'death-valley-fans': `${ESRI_EARTH_BASE}/6/11/24`,
+  'iceland-askja-holuhraun': `${ESRI_EARTH_BASE}/6/8/30`,
+  'askja-holuhraun': `${ESRI_EARTH_BASE}/6/8/30`,
+  'hawaii-mauna-kea': `${ESRI_EARTH_BASE}/6/10/31`,
+  'california-coso-volcanic': `${ESRI_EARTH_BASE}/6/11/24`,
+  'coso-volcanic': `${ESRI_EARTH_BASE}/6/11/24`,
+  'spain-rio-tinto': `${ESRI_EARTH_BASE}/6/31/15`,
+  'rio-tinto': `${ESRI_EARTH_BASE}/6/31/15`,
+  'svalbard-spitsbergen': `${ESRI_EARTH_BASE}/5/2/16`,
+  'svalbard-polygons': `${ESRI_EARTH_BASE}/5/2/16`,
+  'utah-hanksville-mdrs': `${ESRI_EARTH_BASE}/6/12/24`,
+  'hanksville-mdrs': `${ESRI_EARTH_BASE}/6/12/24`,
+  'arizona-meteor-crater': `${ESRI_EARTH_BASE}/6/12/25`,
+  'meteor-crater': `${ESRI_EARTH_BASE}/6/12/25`,
+  'antarctica-mcmurdo-dry-valleys': `${ESRI_EARTH_BASE}/4/2/14`,
+  'mcmurdo-dry-valleys': `${ESRI_EARTH_BASE}/4/2/14`,
+  'kilbourne-hole': `${ESRI_EARTH_BASE}/6/13/26`,
 };
 
 export function getTerrainImage(
@@ -77,17 +66,15 @@ export function getTerrainImage(
     return TERRAIN_IMAGES[siteId];
   }
 
-  // Smart geological class fallback for dynamically fetched API sites
+  // Dynamic fallback based on geological class
   if (geologicalClass) {
     const geo = geologicalClass.toLowerCase();
-    if (geo.includes('impact') || geo.includes('crater')) return meteorCraterImg;
-    if (geo.includes('lava') || geo.includes('tube') || geo.includes('cave')) return lanzaroteImg;
-    if (geo.includes('volcanic') || geo.includes('basalt') || geo.includes('ophiolite')) return basaltImg;
-    if (geo.includes('polar') || geo.includes('ice') || geo.includes('glacier')) return mcmurdoImg;
-    if (geo.includes('permafrost') || geo.includes('polygon')) return svalbardImg;
-    if (geo.includes('hydrothermal') || geo.includes('acid') || geo.includes('iron')) return rioTintoImg;
-    if (geo.includes('playa') || geo.includes('salt') || geo.includes('dune') || geo.includes('aeolian')) return deathValleyImg;
+    if (geo.includes('moon') || geo.includes('lunar')) return `${OPM_MOON_BASE}/2/1/1.png`;
+    if (geo.includes('mars')) return `${OPM_MARS_BASE}/2/2/1.png`;
+    if (geo.includes('crater')) return `${ESRI_EARTH_BASE}/6/12/25`;
+    if (geo.includes('volcanic') || geo.includes('basalt')) return `${ESRI_EARTH_BASE}/6/8/30`;
+    if (geo.includes('polar') || geo.includes('ice')) return `${ESRI_EARTH_BASE}/4/2/14`;
   }
 
-  return defaultFallback && TERRAIN_IMAGES[defaultFallback] ? TERRAIN_IMAGES[defaultFallback] : atacamaImg;
+  return `${ESRI_EARTH_BASE}/5/10/18`;
 }

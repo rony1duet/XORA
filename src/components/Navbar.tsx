@@ -13,15 +13,11 @@ import { Compass, BarChart3, GitCompare, Menu, X, Server } from 'lucide-react';
 interface NavbarProps {
   currentRoute: string;
   navigate: (route: string) => void;
-  onOpenApiHub?: () => void;
-  isApiLive?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   currentRoute,
   navigate,
-  onOpenApiHub,
-  isApiLive = false,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -58,26 +54,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right: Floating Glass Capsule Navigation & Mobile Toggle */}
         <div className="flex items-center gap-2.5">
-          {/* API Data Sync Hub Button */}
-          {onOpenApiHub && (
-            <button
-              onClick={onOpenApiHub}
-              className={`px-3 py-1.5 rounded-full text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer border ${
-                isApiLive
-                  ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300 hover:bg-emerald-900/50 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
-                  : 'bg-[#0D131F]/90 border-slate-800 text-slate-300 hover:text-cyan-300 hover:border-cyan-500/40'
-              }`}
-              title="Configure Teammate API & Sync Datasets"
-            >
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  isApiLive ? 'bg-emerald-400 animate-pulse' : 'bg-cyan-400'
-                }`}
-              />
-              <span className="hidden sm:inline">API Data Hub</span>
-            </button>
-          )}
-
           <nav className="hidden md:flex items-center p-1 rounded-full bg-[#0D131F]/90 border border-slate-800/80 shadow-inner">
             {navLinks.map((link) => {
               const isActive = currentRoute === link.id;
@@ -139,22 +115,6 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             );
           })}
-
-          {onOpenApiHub && (
-            <button
-              onClick={() => {
-                onOpenApiHub();
-                setMobileMenuOpen(false);
-              }}
-              className="w-full flex items-center justify-between px-4 py-3 text-sm rounded-xl bg-[#0F172A] border border-cyan-500/30 text-cyan-300 font-semibold cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <Server className="w-4 h-4 text-cyan-400" />
-                <span>Planetary Dataset API Hub</span>
-              </div>
-              <span className={`w-2 h-2 rounded-full ${isApiLive ? 'bg-emerald-400' : 'bg-cyan-400'}`} />
-            </button>
-          )}
         </div>
       )}
     </header>

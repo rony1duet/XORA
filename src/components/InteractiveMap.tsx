@@ -5,7 +5,7 @@
  * live CARTO BigQuery 25km geodetic buffer polygons, and resilient map lifecycle management.
  */
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import L from 'leaflet';
 import { EarthCandidateSite, CelestialBody } from '../types/analog';
 import { 
@@ -22,7 +22,9 @@ import {
   Map as MapIcon,
   Eye,
   Crosshair,
-  Sparkles
+  Sparkles,
+  ExternalLink,
+  Rocket
 } from 'lucide-react';
 import { testCartoConnection, fetchCartoSiteBuffers, CartoConnectionStatus } from '../services/cartoService';
 
@@ -83,6 +85,36 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const [cartoStatus, setCartoStatus] = useState<CartoConnectionStatus | null>(null);
   const [showCartoBuffers, setShowCartoBuffers] = useState<boolean>(true);
   const [loadingBuffers, setLoadingBuffers] = useState<boolean>(false);
+  const [bodyFilter, setBodyFilter] = useState<'all' | 'moon' | 'mars'>(activeTargetBody || 'all');
+
+  // Synchronize filter when parent changes activeTargetBody
+  useEffect(() => {
+    if (activeTargetBody) {
+      setBodyFilter(activeTargetBody);
+    }
+  }, [activeTargetBody]);
+
+  const moonCount = useMemo(
+    () => sites.filter((s) => s.primaryAnalogs.includes('moon')).length,
+    [sites]
+  );
+  const marsCount = useMemo(
+    () => sites.filter((s) => s.primaryAnalogs.includes('mars')).length,
+    [sites]
+  );
+
+  const visibleSites = useMemo(() => {
+    if (bodyFilter === 'all') return sites;
+    return sites.filter((s) => s.primaryAnalogs.includes(bodyFilter));
+  }, [sites, bodyFilter]);
+
+  // If selected site is not in visible sites, automatically select the first visible site
+  useEffect(() => {
+    if (visibleSites.length > 0 && !visibleSites.some((s) => s.id === selectedSiteId)) {
+      onSelectSite(visibleSites[0]);
+    }
+  }, [visibleSites, selectedSiteId, onSelectSite]);
+
   const [customProbe, setCustomProbe] = useState<{
     lat: number;
     lng: number;
@@ -215,11 +247,11 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
     const handleMapClick = (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
-      if (sites.length === 0) return;
+      if (visibleSites.length === 0) return;
 
-      let closest = sites[0];
+      let closest = visibleSites[0];
       let minDistance = Infinity;
-      for (const s of sites) {
+      for (const s of visibleSites) {
         const dLat = s.coordinates.lat - lat;
         const dLng = s.coordinates.lng - lng;
         const dist = Math.hypot(dLat, dLng);
@@ -254,7 +286,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     return () => {
       map.off('click', handleMapClick);
     };
-  }, [sites]);
+  }, [visibleSites]);
 
   // 2. Synchronize markers whenever candidate sites change
   useEffect(() => {
@@ -265,7 +297,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     Object.values(markersRef.current).forEach((m) => m.remove());
     markersRef.current = {};
 
-    sites.forEach((site) => {
+    visibleSites.forEach((site) => {
       const isMoon = site.primaryAnalogs.includes('moon');
       const isMars = site.primaryAnalogs.includes('mars');
       const markerColor =
@@ -309,7 +341,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
       markersRef.current[site.id] = marker;
     });
-  }, [sites, onSelectSite]);
+  }, [visibleSites, selectedSiteId, onSelectSite]);
 
   // 3. Smoothly update selected marker and viewport without recreating the map
   useEffect(() => {
@@ -318,7 +350,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
     const prevId = prevSelectedSiteIdRef.current;
     if (prevId && prevId !== selectedSiteId && markersRef.current[prevId]) {
-      const prevSite = sites.find((s) => s.id === prevId);
+      const prevSite = visibleSites.find((s) => s.id === prevId);
       if (prevSite) {
         const isMoon = prevSite.primaryAnalogs.includes('moon');
         const isMars = prevSite.primaryAnalogs.includes('mars');
@@ -328,7 +360,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     }
 
     if (selectedSiteId && markersRef.current[selectedSiteId]) {
-      const currSite = sites.find((s) => s.id === selectedSiteId);
+      const currSite = visibleSites.find((s) => s.id === selectedSiteId);
       if (currSite) {
         const isMoon = currSite.primaryAnalogs.includes('moon');
         const isMars = currSite.primaryAnalogs.includes('mars');
@@ -358,7 +390,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         };
       });
     }
-  }, [selectedSiteId, sites]);
+  }, [selectedSiteId, visibleSites]);
 
   // 3. CARTO BigQuery Buffers Fetch & Mount (Cached once)
   useEffect(() => {
@@ -399,15 +431,10 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       bufferLayerRef.current = layer;
     };
 
-    if (cachedBuffersRef.current && cachedBuffersRef.current.features?.length === sites.length) {
-      applyGeoJson(cachedBuffersRef.current);
-      return;
-    }
-
-    if (sites.length > 0) {
+    if (visibleSites.length > 0) {
       setLoadingBuffers(true);
       fetchCartoSiteBuffers(
-        sites.map((s) => ({
+        visibleSites.map((s) => ({
           id: s.id,
           name: s.name,
           lat: s.coordinates.lat,
@@ -415,7 +442,6 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
         }))
       )
         .then((geojson) => {
-          cachedBuffersRef.current = geojson;
           if (mapInstanceRef.current && showCartoBuffers) {
             applyGeoJson(geojson);
           }
@@ -427,7 +453,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           setLoadingBuffers(false);
         });
     }
-  }, [showCartoBuffers, sites, selectedSiteId]);
+  }, [showCartoBuffers, visibleSites, selectedSiteId]);
 
   // Navigation Helpers
   const handleZoomIn = () => mapInstanceRef.current?.zoomIn();
@@ -440,7 +466,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     mapInstanceRef.current?.flyTo([lat, lng], zoom, { duration: 1.2 });
   };
 
-  const activeSite = sites.find((s) => s.id === selectedSiteId) || sites[0];
+  const activeSite = visibleSites.find((s) => s.id === selectedSiteId) || visibleSites[0] || sites[0];
 
   return (
     <div className="relative w-full bg-[#080D17] border border-slate-800 rounded-xl overflow-hidden flex flex-col shadow-lg">
@@ -450,6 +476,45 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
           <div className="flex items-center gap-2">
             <Navigation className="w-4 h-4 text-cyan-400" />
             <span className="font-semibold text-white">Live Earth Map</span>
+          </div>
+
+          {/* Moon vs Mars Analog Filter Switcher */}
+          <div className="flex items-center gap-1 bg-[#0A101D] p-1 rounded-lg border border-slate-800 text-[11px]">
+            <button
+              onClick={() => setBodyFilter('all')}
+              className={`px-2.5 py-0.5 rounded transition-colors cursor-pointer flex items-center gap-1 ${
+                bodyFilter === 'all'
+                  ? 'bg-slate-700/80 text-white font-semibold shadow-sm'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+              title="Show all candidate sites across Earth"
+            >
+              <span>All ({sites.length})</span>
+            </button>
+            <button
+              onClick={() => setBodyFilter('moon')}
+              className={`px-2.5 py-0.5 rounded transition-colors cursor-pointer flex items-center gap-1.5 ${
+                bodyFilter === 'moon'
+                  ? 'bg-cyan-500/25 text-cyan-300 font-semibold border border-cyan-500/50 shadow-sm'
+                  : 'text-slate-400 hover:text-cyan-300'
+              }`}
+              title="Filter strictly to Moon analog sites (craters, basalt plains, lava tubes, ophiolites)"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+              <span>Moon ({moonCount})</span>
+            </button>
+            <button
+              onClick={() => setBodyFilter('mars')}
+              className={`px-2.5 py-0.5 rounded transition-colors cursor-pointer flex items-center gap-1.5 ${
+                bodyFilter === 'mars'
+                  ? 'bg-amber-500/25 text-amber-300 font-semibold border border-amber-500/50 shadow-sm'
+                  : 'text-slate-400 hover:text-amber-300'
+              }`}
+              title="Filter strictly to Mars analog sites (paleolakes, salars, acid springs, permafrost, dunes)"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+              <span>Mars ({marsCount})</span>
+            </button>
           </div>
 
           {/* Live CARTO DW Status Badge */}
@@ -480,7 +545,7 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
             ) : (
               <Layers className="w-3 h-3 text-cyan-400" />
             )}
-            <span>25km CARTO Buffers</span>
+            <span>25km Buffers</span>
           </button>
         </div>
 
@@ -648,6 +713,41 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Quick 3D Deep-Link Launchers (Google Earth & NASA Trek) */}
+            <div className="flex items-center gap-2 pt-1 border-t border-slate-800/80">
+              <a
+                href={`https://earth.google.com/web/@${(customProbe ? customProbe.lat : activeSite.coordinates.lat).toFixed(4)},${(customProbe ? customProbe.lng : activeSite.coordinates.lng).toFixed(4)},2500a,35y,0h,0t,0r`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 py-1 px-2 rounded bg-[#101726] hover:bg-emerald-950/80 border border-emerald-500/30 text-emerald-300 font-mono text-[10px] flex items-center justify-center gap-1 transition-colors"
+                title="Open in Google Earth 3D Real View"
+              >
+                <Globe className="w-3 h-3 text-emerald-400" />
+                <span>Google Earth</span>
+                <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+              </a>
+
+              <a
+                href={
+                  activeTargetBody === 'moon'
+                    ? 'https://trek.nasa.gov/moon/#v=0.1&x=0.0&y=-89.9&z=6&p=urn%3Aogc%3Adef%3Acrs%3AEPSG%3A%3A104903'
+                    : 'https://trek.nasa.gov/mars/#v=0.1&x=77.58&y=18.38&z=5&p=urn%3Aogc%3Adef%3Acrs%3AEPSG%3A%3A104905'
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex-1 py-1 px-2 rounded font-mono text-[10px] flex items-center justify-center gap-1 transition-colors border ${
+                  activeTargetBody === 'moon'
+                    ? 'bg-[#101726] hover:bg-cyan-950/80 border-cyan-500/30 text-cyan-300'
+                    : 'bg-[#101726] hover:bg-amber-950/80 border-amber-500/30 text-amber-300'
+                }`}
+                title={`Open target in NASA ${activeTargetBody === 'moon' ? 'Moon' : 'Mars'} Trek 3D`}
+              >
+                <Rocket className="w-3 h-3" />
+                <span>NASA {activeTargetBody === 'moon' ? 'Moon' : 'Mars'} Trek</span>
+                <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+              </a>
+            </div>
 
             {/* Direct Live Visual Compare Action Button */}
             {onOpenLiveCompare && (
